@@ -1,0 +1,8 @@
+[package]
+name = "sayo_sema"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+sayo_ast = { path = "../sayo_ast" }
+thiserror = "1.0"

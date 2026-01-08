@@ -1,0 +1,132 @@
+use sayo_ast::{
+    Program, Item, Directive, Instruction, Operand,
+    Mnemonic, Register, Span, Spanned,
+};
+
+grammar;
+
+match {
+    r"[ \t]+" => { },  // Skip spaces and tabs (not newlines)
+    r";[^\n]*" => COMMENT,  // Comments
+    r"\.[a-zA-Z_][a-zA-Z0-9_]*" => DIRECTIVE,
+    r"[a-zA-Z_*][a-zA-Z0-9_*]*" => IDENT,
+    r"-?[0-9]+" => INT,
+    r"0[xX][0-9a-fA-F]+" => HEX,
+    r"\n" => NEWLINE,
+    _
+}
+
+// Main program
+pub Program: Program = {
+    <items:(<LineItem>)*> => Program { 
+        items: items.into_iter().flatten().collect()
+    },
+};
+
+LineItem: Option<Spanned<Item>> = {
+    <Line> => <>,
+    NEWLINE => None,  // Skip empty lines
+};
+
+Line: Option<Spanned<Item>> = {
+    <start:@L> <d:Directive> <end:@R> => {
+        Some(Spanned::new(Item::Directive(d), Span::new(start, end)))
+    },
+    <start:@L> <id:IDENT> ":" <end:@R> => {
+        Some(Spanned::new(Item::Label(id.to_string()), Span::new(start, end)))
+    },
+    <start:@L> <i:Instruction> <end:@R> => {
+        Some(Spanned::new(Item::Instruction(i), Span::new(start, end)))
+    },
+};
+
+// Directives
+Directive: Directive = {
+    DIRECTIVE => {
+        let s = <>.trim_start_matches('.');
+        match s {
+            "text" => Directive::Text,
+            "data" => Directive::Data,
+            "bss" => Directive::Bss,
+            _ => Directive::Text,
+        }
+    },
+    <d:DIRECTIVE> <name:IDENT> => {
+        let s = d.trim_start_matches('.');
+        match s {
+            "file" => Directive::File(name.to_string()),
+            "ident" => Directive::Ident(name.to_string()),
+            "globl" | "global" => Directive::Globl(name.to_string()),
+            "local" => Directive::Local(name.to_string()),
+            "section" => Directive::Section(name.to_string()),
+            "ascii" | "asciz" => Directive::Ascii(name.to_string()),
+            "loc" => Directive::Loc(name.to_string()),
+            "type" => Directive::Type(name.to_string(), String::new()),
+            _ => Directive::Text,
+        }
+    },
+    <d:DIRECTIVE> <num:INT> => {
+        let s = d.trim_start_matches('.');
+        let n = num.parse::<i64>().unwrap_or(0);
+        match s {
+            "align" => Directive::Align(n as u32),
+            "p2align" => Directive::P2align(n as u32),
+            "zero" => Directive::Zero(n),
+            "org" => Directive::Org(n),
+            "skip" => Directive::Skip(n),
+            "byte" => Directive::Byte(vec![n]),
+            "word" => Directive::Word(vec![n]),
+            "long" => Directive::Long(vec![n]),
+            "quad" => Directive::Quad(vec![n]),
+            _ => Directive::Align(n as u32),
+        }
+    },
+};
+
+// Instruction
+Instruction: Instruction = {
+    <mnem:IDENT> => {
+        let mnemonic = Mnemonic::from_str(&mnem).unwrap_or(Mnemonic::NOP);
+        Instruction {
+            mnemonic,
+            operands: vec![],
+            encoding: None,
+        }
+    },
+    <mnem:IDENT> <ops:OperandList> => {
+        let mnemonic = Mnemonic::from_str(&mnem).unwrap_or(Mnemonic::NOP);
+        Instruction {
+            mnemonic,
+            operands: ops,
+            encoding: None,
+        }
+    },
+};
+
+// Operand list
+OperandList: Vec<Spanned<Operand>> = {
+    <op:Operand> => vec![op],
+    <mut ops:OperandList> "," <op:Operand> => {
+        ops.push(op);
+        ops
+    },
+};
+
+// Single operand
+Operand: Spanned<Operand> = {
+    <start:@L> <id:IDENT> <end:@R> => {
+        if let Some(r) = Register::from_str(&id) {
+            Spanned::new(Operand::Register(r), Span::new(start, end))
+        } else {
+            Spanned::new(Operand::Label(id.to_string()), Span::new(start, end))
+        }
+    },
+    <start:@L> <n:INT> <end:@R> => {
+        let val = n.parse::<i64>().unwrap_or(0);
+        Spanned::new(Operand::Immediate(val), Span::new(start, end))
+    },
+    <start:@L> <h:HEX> <end:@R> => {
+        let val = u64::from_str_radix(h.trim_start_matches("0x").trim_start_matches("0X"), 16).unwrap_or(0);
+        Spanned::new(Operand::Immediate(val as i64), Span::new(start, end))
+    },
+};

@@ -1,0 +1,48 @@
+{
+  "name": "sayo-asm",
+  "displayName": "Sayo Assembly",
+  "description": "Language support for Sayo assembly language",
+  "version": "0.1.0",
+  "engines": {
+    "vscode": "^1.80.0"
+  },
+  "categories": ["Programming Languages"],
+  "main": "./out/extension.js",
+  "contributes": {
+    "languages": [{
+      "id": "sayo-asm",
+      "aliases": ["Sayo Assembly", "sayo"],
+      "extensions": [".s", ".asm"],
+      "configuration": "./language-configuration.json"
+    }],
+    "grammars": [{
+      "language": "sayo-asm",
+      "scopeName": "source.sayo-asm",
+      "path": "./syntaxes/sayo-asm.tmLanguage.json"
+    }],
+    "configuration": {
+      "type": "object",
+      "title": "Sayo Assembly",
+      "properties": {
+        "sayo-asm.languageServer.path": {
+          "type": "string",
+          "default": "",
+          "description": "Path to sayo-lsp executable"
+        }
+      }
+    }
+  },
+  "scripts": {
+    "vscode:prepublish": "npm run compile",
+    "compile": "tsc -p ./",
+    "watch": "tsc -watch -p ./"
+  },
+  "devDependencies": {
+    "@types/node": "^20.0.0",
+    "@types/vscode": "^1.80.0",
+    "typescript": "^5.0.0"
+  },
+  "dependencies": {
+    "vscode-languageclient": "^9.0.0"
+  }
+}

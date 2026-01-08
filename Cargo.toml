@@ -1,0 +1,22 @@
+[workspace]
+resolver = "2"
+members = [
+    "crates/sayo_ast",
+    "crates/sayo_parser",
+    "crates/sayo_lsp",
+    "crates/sayo_sema",
+]
+
+[workspace.package]
+version = "0.1.0"
+edition = "2021"
+authors = ["Your Name"]
+license = "MIT OR Apache-2.0"
+
+[workspace.dependencies]
+# Common dependencies
+serde = { version = "1.0", features = ["derive"] }
+thiserror = "1.0"
+
+# For parser
+lalrpop-util = { version = "0.20", features = ["lexer"] }

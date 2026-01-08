@@ -1,0 +1,712 @@
+use tower_lsp::lsp_types::*;
+use tower_lsp::{Client, LanguageServer, LspService, Server};
+use sayo_parser::{parse, ParseError};
+use sayo_ast::{Mnemonic, Item};
+use sayo_sema::{SemanticChecker, SemanticError};
+use std::collections::HashMap;
+
+// Instruction metadata
+#[derive(Debug, Clone)]
+struct InstructionInfo {
+    mnemonic: String,
+    opcode: u8,
+    opcode_hex: String,
+    length: u8,
+    operand_i: String,
+    operand_j: String,
+    operand_k: String,
+    description: String,
+    note: String,
+}
+
+// Register metadata
+#[derive(Debug, Clone)]
+struct RegisterInfo {
+    name: String,
+    index: u8,
+    bit_width: u8,
+    access: String, // R, W, RW
+    description: String,
+}
+
+// Helper function to convert byte offset to line/column
+fn position_from_offset(text: &str, offset: usize) -> (usize, usize) {
+    let mut line = 0;
+    let mut col = 0;
+    for (i, ch) in text.chars().enumerate() {
+        if i >= offset {
+            break;
+        }
+        if ch == '\n' {
+            line += 1;
+            col = 0;
+        } else {
+            col += 1;
+        }
+    }
+    (line, col)
+}
+
+// Load instruction metadata from CSV data
+fn load_instruction_metadata() -> HashMap<String, InstructionInfo> {
+    let csv_data = include_str!("../../../sayo_instr.csv");
+    let mut map = HashMap::new();
+    
+    for (idx, line) in csv_data.lines().enumerate() {
+        if idx == 0 { continue; } // Skip header
+        
+        let parts: Vec<&str> = line.split(',').collect();
+        if parts.len() < 9 { continue; }
+        
+        let mnemonic = parts[0].trim();
+        if mnemonic.is_empty() { continue; }
+        
+        // Parse opcode
+        let opcode = parts[1].trim().parse::<u8>().unwrap_or(0);
+        let opcode_hex = parts[2].trim().to_string();
+        let length = parts[3].trim().parse::<u8>().unwrap_or(1);
+        let operand_i = parts[4].trim().to_string();
+        let operand_j = parts[5].trim().to_string();
+        let operand_k = parts[6].trim().to_string();
+        let description = parts[7].trim().to_string();
+        let note = parts[8].trim().to_string();
+        
+        map.insert(
+            mnemonic.to_uppercase(),
+            InstructionInfo {
+                mnemonic: mnemonic.to_string(),
+                opcode,
+                opcode_hex,
+                length,
+                operand_i,
+                operand_j,
+                operand_k,
+                description,
+                note,
+            },
+        );
+    }
+    
+    map
+}
+
+// Load register metadata from CSV data
+fn load_register_metadata() -> HashMap<String, RegisterInfo> {
+    let csv_data = include_str!("../../../sayo_reg.csv");
+    let mut map = HashMap::new();
+    
+    for (idx, line) in csv_data.lines().enumerate() {
+        if idx == 0 { continue; } // Skip header
+        
+        let parts: Vec<&str> = line.split(',').collect();
+        if parts.len() < 5 { continue; }
+        
+        let index_str = parts[0].trim();
+        if index_str.is_empty() || !index_str.starts_with("0x") { continue; }
+        
+        let name = parts[1].trim();
+        if name.is_empty() { continue; }
+        
+        // Parse index (hex string like "0x0A")
+        let index = u8::from_str_radix(&index_str[2..], 16).unwrap_or(0);
+        
+        let bit_width_str = parts[2].trim();
+        let bit_width = bit_width_str.parse::<u8>().unwrap_or(0);
+        if bit_width == 0 { continue; }
+        
+        let access = parts[3].trim().to_string();
+        let description = parts[4].trim().to_string();
+        
+        map.insert(
+            name.to_uppercase(),
+            RegisterInfo {
+                name: name.to_string(),
+                index,
+                bit_width,
+                access,
+                description,
+            },
+        );
+    }
+    
+    map
+}
+
+// Get all instruction mnemonics
+// Format hover text for instruction with full metadata
+fn format_instruction_hover(mnemonic: &str, info: &InstructionInfo) -> String {
+    let mut text = format!("**{}**\n\n", mnemonic);
+    
+    // Metadata section
+    text.push_str("---\n\n");
+    text.push_str(&format!("**Opcode:** {} ({})\n\n", info.opcode_hex, info.opcode));
+    text.push_str(&format!("**Length:** {} byte(s)\n\n", info.length));
+    
+    // Operands
+    let mut operands = Vec::new();
+    if info.operand_i != "-" && !info.operand_i.is_empty() {
+        operands.push(format!("i: {}", info.operand_i));
+    }
+    if info.operand_j != "-" && !info.operand_j.is_empty() {
+        operands.push(format!("j: {}", info.operand_j));
+    }
+    if info.operand_k != "-" && !info.operand_k.is_empty() {
+        operands.push(format!("k: {}", info.operand_k));
+    }
+    
+    if !operands.is_empty() {
+        text.push_str(&format!("**Operands:** {}\n\n", operands.join(", ")));
+    } else {
+        text.push_str("**Operands:** None\n\n");
+    }
+    
+    // Description
+    text.push_str("---\n\n");
+    if !info.description.is_empty() {
+        text.push_str(&format!("**Description:** {}\n\n", info.description));
+    }
+    
+    // Note
+    if !info.note.is_empty() {
+        text.push_str(&format!("**Note:** {}\n\n", info.note));
+    }
+    
+    text
+}
+
+// Format hover text for register with full metadata
+fn format_register_hover(register: &str, info: &RegisterInfo) -> String {
+    let mut text = format!("**{}**\n\n", register);
+    
+    text.push_str("---\n\n");
+    text.push_str(&format!("**Index:** 0x{:02X}\n\n", info.index));
+    text.push_str(&format!("**Bit Width:** {} bits\n\n", info.bit_width));
+    
+    let access_str = match info.access.as_str() {
+        "R" => "Read-only",
+        "W" => "Write-only",
+        "RW" => "Read/Write",
+        _ => &info.access,
+    };
+    text.push_str(&format!("**Access:** {}\n\n", access_str));
+    
+    if !info.description.is_empty() {
+        text.push_str("---\n\n");
+        text.push_str(&format!("**Description:** {}\n\n", info.description));
+    }
+    
+    text
+}
+
+#[derive(Debug)]
+struct Backend {
+    client: Client,
+    document_map: tokio::sync::RwLock<HashMap<String, String>>,
+    instruction_metadata: HashMap<String, InstructionInfo>,
+    register_metadata: HashMap<String, RegisterInfo>,
+}
+
+#[tower_lsp::async_trait]
+impl LanguageServer for Backend {
+    async fn initialize(&self, _: InitializeParams) -> tower_lsp::jsonrpc::Result<InitializeResult> {
+        Ok(InitializeResult {
+            server_info: Some(ServerInfo {
+                name: "Sayo Assembly Language Server".to_string(),
+                version: Some("0.1.0".to_string()),
+            }),
+            capabilities: ServerCapabilities {
+                text_document_sync: Some(TextDocumentSyncCapability::Kind(
+                    TextDocumentSyncKind::FULL,
+                )),
+                completion_provider: Some(CompletionOptions {
+                    resolve_provider: Some(false),
+                    trigger_characters: Some(vec![".".to_string(), " ".to_string()]),
+                    ..Default::default()
+                }),
+                hover_provider: Some(HoverProviderCapability::Simple(true)),                semantic_tokens_provider: Some(
+                    SemanticTokensServerCapabilities::SemanticTokensRegistrationOptions(
+                        SemanticTokensRegistrationOptions {
+                            text_document_registration_options: {
+                                TextDocumentRegistrationOptions {
+                                    document_selector: Some(vec![DocumentFilter {
+                                        language: Some("sayo-asm".to_string()),
+                                        scheme: Some("file".to_string()),
+                                        pattern: None,
+                                    }]),
+                                }
+                            },
+                            semantic_tokens_options: SemanticTokensOptions {
+                                work_done_progress_options: WorkDoneProgressOptions::default(),
+                                legend: SemanticTokensLegend {
+                                    token_types: vec![
+                                        SemanticTokenType::STRING,     // 0: directive (橙色)
+                                        SemanticTokenType::FUNCTION,   // 1: label (黄色)
+                                        SemanticTokenType::VARIABLE,   // 2: register
+                                        SemanticTokenType::KEYWORD,    // 3: instruction (品红色)
+                                        SemanticTokenType::NUMBER,     // 4: immediate
+                                        SemanticTokenType::COMMENT,    // 5: comment
+                                        SemanticTokenType::MACRO,      // 6: unknown/error
+                                    ],
+                                    token_modifiers: vec![],
+                                },
+                                range: Some(false),
+                                full: Some(SemanticTokensFullOptions::Bool(true)),
+                            },
+                            static_registration_options: StaticRegistrationOptions::default(),
+                        },
+                    ),
+                ),                ..ServerCapabilities::default()
+            },
+        })
+    }
+
+    async fn initialized(&self, _: InitializedParams) {
+        self.client
+            .log_message(MessageType::INFO, "Sayo LSP server initialized")
+            .await;
+        
+        self.client
+            .log_message(
+                MessageType::INFO, 
+                format!("Loaded {} instructions and {} registers", 
+                    self.instruction_metadata.len(), 
+                    self.register_metadata.len())
+            )
+            .await;
+    }
+
+    async fn shutdown(&self) -> tower_lsp::jsonrpc::Result<()> {
+        Ok(())
+    }
+
+    async fn semantic_tokens_full(&self, params: SemanticTokensParams) -> tower_lsp::jsonrpc::Result<Option<SemanticTokensResult>> {
+        let uri = params.text_document.uri.to_string();
+        
+        let doc_map = self.document_map.read().await;
+        let text = match doc_map.get(&uri) {
+            Some(t) => t,
+            None => return Ok(None),
+        };
+        
+        let mut tokens_data = Vec::new();
+        
+        // Parse the document
+        match parse(text) {
+            Ok(program) => {
+                let mut prev_line = 0;
+                let mut prev_col = 0;
+                
+                for item in &program.items {
+                    let item_inner = &item.node;
+                    let span = &item.span;
+                    
+                    // Calculate line and column from span
+                    let (line, col) = position_from_offset(text, span.start);
+                    
+                    match item_inner {
+                        Item::Directive(_dir) => {
+                            // Directive token (type 0: STRING - 橙色)
+                            let delta_line = line - prev_line;
+                            let delta_col = if delta_line == 0 { col - prev_col } else { col };
+                            
+                            tokens_data.push(SemanticToken {
+                                delta_line: delta_line as u32,
+                                delta_start: delta_col as u32,
+                                length: (span.end - span.start) as u32,
+                                token_type: 0, // directive (橙色)
+                                token_modifiers_bitset: 0,
+                            });
+                            
+                            prev_line = line;
+                            prev_col = col;
+                        }
+                        Item::Instruction(inst) => {
+                            // Instruction mnemonic token (type 3: KEYWORD - 品红色)
+                            let mnem_text = format!("{:?}", inst.mnemonic);
+                            let mnem_len = mnem_text.len();
+                            
+                            let delta_line = line - prev_line;
+                            let delta_col = if delta_line == 0 { col - prev_col } else { col };
+                            
+                            // Check if it's a valid instruction by comparing actual source text
+                            let actual_text = &text[span.start..span.start + mnem_len.min(span.end - span.start)];
+                            let token_type = if matches!(inst.mnemonic, Mnemonic::NOP) && 
+                                              actual_text.to_uppercase() != "NOP" {
+                                6 // unknown/error (MACRO)
+                            } else {
+                                3 // instruction (品红色)
+                            };
+                            
+                            tokens_data.push(SemanticToken {
+                                delta_line: delta_line as u32,
+                                delta_start: delta_col as u32,
+                                length: mnem_len as u32,
+                                token_type,
+                                token_modifiers_bitset: 0,
+                            });
+                            
+                            prev_line = line;
+                            prev_col = col;
+                            
+                            // Operands
+                            for operand in &inst.operands {
+                                let op_span = &operand.span;
+                                let (op_line, op_col) = position_from_offset(text, op_span.start);
+                                
+                                let delta_line = op_line - prev_line;
+                                let delta_col = if delta_line == 0 { op_col - prev_col } else { op_col };
+                                
+                                let token_type = match &operand.node {
+                                    sayo_ast::Operand::Register(_) => 2, // register
+                                    sayo_ast::Operand::Immediate(_) => 4, // number
+                                    sayo_ast::Operand::Label(_) => 1, // label (黄色，与label定义一致)
+                                };
+                                
+                                tokens_data.push(SemanticToken {
+                                    delta_line: delta_line as u32,
+                                    delta_start: delta_col as u32,
+                                    length: (op_span.end - op_span.start) as u32,
+                                    token_type,
+                                    token_modifiers_bitset: 0,
+                                });
+                                
+                                prev_line = op_line;
+                                prev_col = op_col;
+                            }
+                        }
+                        Item::Label(_) => {
+                            // Label token (type 1: FUNCTION - 黄色)
+                            let delta_line = line - prev_line;
+                            let delta_col = if delta_line == 0 { col - prev_col } else { col };
+                            
+                            tokens_data.push(SemanticToken {
+                                delta_line: delta_line as u32,
+                                delta_start: delta_col as u32,
+                                length: (span.end - span.start) as u32,
+                                token_type: 1, // label (黄色)
+                                token_modifiers_bitset: 0,
+                            });
+                            
+                            prev_line = line;
+                            prev_col = col;
+                        }
+                    }
+                }
+            }
+            Err(_) => {
+                // If parsing fails, return empty tokens
+                return Ok(None);
+            }
+        }
+        
+        Ok(Some(SemanticTokensResult::Tokens(SemanticTokens {
+            result_id: None,
+            data: tokens_data,
+        })))
+    }
+
+    async fn completion(&self, params: CompletionParams) -> tower_lsp::jsonrpc::Result<Option<CompletionResponse>> {
+        let uri = params.text_document_position.text_document.uri.to_string();
+        
+        let doc_map = self.document_map.read().await;
+        let text = match doc_map.get(&uri) {
+            Some(t) => t,
+            None => return Ok(None),
+        };
+
+        let position = params.text_document_position.position;
+        let lines: Vec<&str> = text.lines().collect();
+        if position.line as usize >= lines.len() {
+            return Ok(None);
+        }
+        
+        let current_line = lines[position.line as usize];
+        let prefix = &current_line[..(position.character as usize).min(current_line.len())];
+        
+        let mut completions = Vec::new();
+        
+        // Directive completions
+        if prefix.trim_start().starts_with('.') {
+            for directive in &["text", "data", "globl", "align", "file", "type", "size", "section"] {
+                completions.push(CompletionItem {
+                    label: format!(".{}", directive),
+                    kind: Some(CompletionItemKind::KEYWORD),
+                    detail: Some("Assembler directive".to_string()),
+                    ..Default::default()
+                });
+            }
+        }
+        // Register completions (after whitespace or comma)
+        else if prefix.ends_with(|c: char| c.is_whitespace() || c == ',') {
+            for (reg_name, reg_info) in &self.register_metadata {
+                completions.push(CompletionItem {
+                    label: reg_name.clone(),
+                    kind: Some(CompletionItemKind::VARIABLE),
+                    detail: Some(format!("Register - {} bits", reg_info.bit_width)),
+                    documentation: if !reg_info.description.is_empty() {
+                        Some(Documentation::String(reg_info.description.clone()))
+                    } else {
+                        None
+                    },
+                    ..Default::default()
+                });
+            }
+        }
+        // Instruction completions
+        else {
+            for (instr_name, instr_info) in &self.instruction_metadata {
+                completions.push(CompletionItem {
+                    label: instr_name.clone(),
+                    kind: Some(CompletionItemKind::FUNCTION),
+                    detail: Some(format!("Instruction - {}", instr_info.opcode_hex)),
+                    documentation: if !instr_info.description.is_empty() {
+                        Some(Documentation::String(instr_info.description.clone()))
+                    } else {
+                        None
+                    },
+                    ..Default::default()
+                });
+            }
+        }
+        
+        Ok(Some(CompletionResponse::Array(completions)))
+    }
+
+    async fn hover(&self, params: HoverParams) -> tower_lsp::jsonrpc::Result<Option<Hover>> {
+        let uri = params.text_document_position_params.text_document.uri.to_string();
+        let position = params.text_document_position_params.position;
+        
+        let doc_map = self.document_map.read().await;
+        let text = match doc_map.get(&uri) {
+            Some(t) => t,
+            None => return Ok(None),
+        };
+        
+        let lines: Vec<&str> = text.lines().collect();
+        if position.line as usize >= lines.len() {
+            return Ok(None);
+        }
+        
+        let line = lines[position.line as usize];
+        let cursor_pos = position.character as usize;
+        
+        // Extract word at cursor position
+        let mut word_start = cursor_pos;
+        let mut word_end = cursor_pos;
+        
+        // Find word boundaries (support * for indirect addressing)
+        let chars: Vec<char> = line.chars().collect();
+        if cursor_pos >= chars.len() {
+            return Ok(None);
+        }
+        
+        // Check if we're on a * character (indirect addressing)
+        if chars[cursor_pos] == '*' || (cursor_pos > 0 && chars[cursor_pos - 1] == '*') {
+            if chars[cursor_pos] == '*' {
+                word_start = cursor_pos;
+            } else {
+                word_start = cursor_pos - 1;
+            }
+            word_end = word_start + 1;
+            
+            // Continue to get the register name after *
+            while word_end < chars.len() && (chars[word_end].is_alphanumeric() || chars[word_end] == '_') {
+                word_end += 1;
+            }
+        } else {
+            // Normal word boundary detection
+            while word_start > 0 && (chars[word_start - 1].is_alphanumeric() || chars[word_start - 1] == '_') {
+                word_start -= 1;
+            }
+            while word_end < chars.len() && (chars[word_end].is_alphanumeric() || chars[word_end] == '_') {
+                word_end += 1;
+            }
+        }
+        
+        if word_start >= word_end {
+            return Ok(None);
+        }
+        
+        let word: String = chars[word_start..word_end].iter().collect();
+        let word_upper = word.to_uppercase();
+        
+        // Check if it's an instruction
+        if let Some(info) = self.instruction_metadata.get(&word_upper) {
+            let hover_text = format_instruction_hover(&word_upper, info);
+            
+            return Ok(Some(Hover {
+                contents: HoverContents::Markup(MarkupContent {
+                    kind: MarkupKind::Markdown,
+                    value: hover_text,
+                }),
+                range: None,
+            }));
+        }
+        
+        // Check if it's a register (including indirect addressing like *R0)
+        if let Some(info) = self.register_metadata.get(&word_upper) {
+            let hover_text = format_register_hover(&word_upper, info);
+            
+            return Ok(Some(Hover {
+                contents: HoverContents::Markup(MarkupContent {
+                    kind: MarkupKind::Markdown,
+                    value: hover_text,
+                }),
+                range: None,
+            }));
+        }
+        
+        Ok(None)
+    }
+
+    async fn did_open(&self, params: DidOpenTextDocumentParams) {
+        let uri = params.text_document.uri.to_string();
+        let text = params.text_document.text;
+        
+        self.document_map
+            .write()
+            .await
+            .insert(uri.clone(), text.clone());
+        
+        self.validate_document(&uri, &text).await;
+    }
+
+    async fn did_change(&self, params: DidChangeTextDocumentParams) {
+        let uri = params.text_document.uri.to_string();
+        if let Some(change) = params.content_changes.into_iter().next() {
+            self.document_map
+                .write()
+                .await
+                .insert(uri.clone(), change.text.clone());
+            
+            self.validate_document(&uri, &change.text).await;
+        }
+    }
+}
+
+impl Backend {
+    async fn validate_document(&self, uri: &str, text: &str) {
+        let mut diagnostics = Vec::new();
+        
+        // Try to parse the document
+        match parse(text) {
+            Ok(program) => {
+                // Successfully parsed - now do semantic validation
+                let mut checker = SemanticChecker::new();
+                if let Err(semantic_errors) = checker.check(&program) {
+                    for error in semantic_errors {
+                        let (line, col, message) = match &error {
+                            SemanticError::ImmediateOutOfRange { value, expected_type, line, col } => {
+                                (*line, *col, format!("Immediate value {} out of range for type {}", value, expected_type))
+                            }
+                            SemanticError::WriteToReadOnlyRegister { register, line, col } => {
+                                (*line, *col, format!("Cannot write to read-only register {}", register))
+                            }
+                            SemanticError::OperandCountMismatch { instruction, expected, actual, line, col } => {
+                                (*line, *col, format!("{} requires {} operand(s), but {} provided", instruction, expected, actual))
+                            }
+                            SemanticError::InvalidOperandType { instruction, expected, actual, line, col } => {
+                                (*line, *col, format!("Invalid operand type for {}: expected {}, got {}", instruction, expected, actual))
+                            }
+                            SemanticError::UndefinedLabel { label, line, col } => {
+                                (*line, *col, format!("Undefined label '{}'", label))
+                            }
+                            SemanticError::DuplicateLabel { label, line, col } => {
+                                (*line, *col, format!("Duplicate label definition '{}'", label))
+                            }
+                            SemanticError::LocalLabelWithoutGlobal { label, line, col } => {
+                                (*line, *col, format!("Local label '{}' used without a preceding global label", label))
+                            }
+                            SemanticError::MixedDirectivesAndInstructions { line, col } => {
+                                (*line, *col, "Directives and instructions cannot be mixed in the same section (between labels)".to_string())
+                            }
+                        };
+                        
+                        // Convert byte offsets to line/column positions
+                        let (lsp_line, lsp_col) = position_from_offset(text, line);
+                        let (_, end_col) = position_from_offset(text, col);
+                        
+                        diagnostics.push(Diagnostic {
+                            range: Range {
+                                start: Position { 
+                                    line: lsp_line as u32, 
+                                    character: lsp_col as u32 
+                                },
+                                end: Position { 
+                                    line: lsp_line as u32, 
+                                    character: end_col.max(lsp_col + 1) as u32
+                                },
+                            },
+                            severity: Some(DiagnosticSeverity::ERROR),
+                            code: None,
+                            source: Some("sayo-asm-semantic".to_string()),
+                            message,
+                            ..Default::default()
+                        });
+                    }
+                }
+            }
+            Err(e) => {
+                // Parse error - extract line and column from ParseError
+                let (line, column, message) = match &e {
+                    ParseError::UnexpectedToken { line, column, message } => {
+                        (*line, *column, message.clone())
+                    }
+                    ParseError::InvalidToken { line, column, token } => {
+                        (*line, *column, token.clone())
+                    }
+                    ParseError::UnrecognizedToken { line, column, token } => {
+                        (*line, *column, format!("Unrecognized token: {}", token))
+                    }
+                    ParseError::ExtraToken { line, column, token } => {
+                        (*line, *column, format!("Extra token: {}", token))
+                    }
+                    ParseError::UnexpectedEof => {
+                        (0, 0, "Unexpected end of file".to_string())
+                    }
+                };
+                
+                // Convert 1-based line to 0-based for LSP
+                let lsp_line = if line > 0 { line - 1 } else { 0 };
+                let lsp_column = if column > 0 { column - 1 } else { 0 };
+                
+                diagnostics.push(Diagnostic {
+                    range: Range {
+                        start: Position { 
+                            line: lsp_line as u32, 
+                            character: lsp_column as u32 
+                        },
+                        end: Position { 
+                            line: lsp_line as u32, 
+                            character: (lsp_column + 20).min(100) as u32 
+                        },
+                    },
+                    severity: Some(DiagnosticSeverity::ERROR),
+                    code: None,
+                    source: Some("sayo-asm".to_string()),
+                    message,
+                    ..Default::default()
+                });
+            }
+        }
+        
+        self.client
+            .publish_diagnostics(uri.parse().unwrap(), diagnostics, None)
+            .await;
+    }
+}
+
+#[tokio::main]
+async fn main() {
+    let stdin = tokio::io::stdin();
+    let stdout = tokio::io::stdout();
+
+    let (service, socket) = LspService::new(|client| Backend {
+        client,
+        document_map: tokio::sync::RwLock::new(HashMap::new()),
+        instruction_metadata: load_instruction_metadata(),
+        register_metadata: load_register_metadata(),
+    });
+
+    Server::new(stdin, stdout, socket).serve(service).await;
+}

@@ -1,0 +1,107 @@
+{
+  "$schema": "https://raw.githubusercontent.com/martinring/tmlanguage/master/tmlanguage.json",
+  "name": "Sayo Assembly",
+  "scopeName": "source.sayo-asm",
+  "patterns": [
+    { "include": "#comments" },
+    { "include": "#directives" },
+    { "include": "#labels" },
+    { "include": "#instructions" },
+    { "include": "#registers" },
+    { "include": "#numbers" },
+    { "include": "#strings" }
+  ],
+  "repository": {
+    "comments": {
+      "patterns": [
+        {
+          "name": "comment.line.semicolon.sayo-asm",
+          "match": ";.*$"
+        }
+      ]
+    },
+    "directives": {
+      "patterns": [
+        {
+          "name": "keyword.control.directive.sayo-asm",
+          "match": "\\.(text|data|bss|section|globl|global|local|type|size|byte|word|long|quad|ascii|asciz|zero|align|p2align|org|skip|file|ident|loc|addrsig)\\b"
+        }
+      ]
+    },
+    "labels": {
+      "patterns": [
+        {
+          "name": "entity.name.function.label.sayo-asm",
+          "match": "^[a-zA-Z_\\.][a-zA-Z0-9_]*:"
+        }
+      ]
+    },
+    "instructions": {
+      "patterns": [
+        {
+          "name": "keyword.other.instruction.sayo-asm",
+          "match": "(?i)\\b(jmp|call|ret|je|jne|jg|jl|jge|jle|jz|jnz|ja|jb|jae|jbe)\\b"
+        },
+        {
+          "name": "keyword.other.instruction.sayo-asm",
+          "match": "(?i)\\b(mov[0-9]*|add[0-9]*|sub[0-9]*|mul[0-9]*|div[0-9]*|and[0-9]*|or[0-9]*|xor[0-9]*|not[0-9]*|shl[0-9]*|shr[0-9]*|cmp[0-9]*|test[0-9]*|push|pop|nop|halt)\\b"
+        },
+        {
+          "name": "keyword.other.instruction.sayo-asm",
+          "match": "(?i)\\b(PRESS_[A-Z_]+|RELEASE_[A-Z_]+|SLEEP[A-Z0-9_]*|PRINT_REG|UPDATE|MO_XYZ[_A-Z]*|GA_XYZ[_A-Z]*|TB_XY[_A-Z]*|DIAL_DATA[_A-Z]*|KEY_TO_AXIS|LED_CTRL|LED_COL|NEW_THREAD|WHILE_UPDATE|JMP_TO_SCRIPT|MOV_PC2REG|VALUE_RELOAD|MODE_JOG|WAIT_IF_[A-Z]+|EXIT_IF_[A-Z]+|C2K[_A-Z]*|U2K[_A-Z]*|MALLOC|FREE|MEMCPY)\\b"
+        },
+        {
+          "name": "keyword.other.instruction.sayo-asm",
+          "match": "(?i)\\b(ADD[0-9_]*[A-Z]*|SUB[0-9_]*[A-Z]*|MUL[0-9_]*[A-Z]*|DIV[0-9_]*[A-Z]*|MOD[0-9_]*[A-Z]*|IMUL[0-9_]*[A-Z]*|AND[0-9_]*[A-Z]*|OR[0-9_]*[A-Z]*|XOR[0-9_]*[A-Z]*|SHL[0-9]*|SHR[0-9]*|ROL[0-9]*|ROR[0-9]*|INC|DEC|NEG)\\b"
+        }
+      ]
+    },
+    "registers": {
+      "patterns": [
+        {
+          "name": "variable.language.register.sayo-asm",
+          "match": "\\b(R[0-9]|R1[0-5]|V[0-3])\\b"
+        },
+        {
+          "name": "variable.language.register.system.sayo-asm",
+          "match": "\\b(SYS_[A-Z_]+|GL_[0-9]+)\\b"
+        },
+        {
+          "name": "variable.language.register.indirect.sayo-asm",
+          "match": "\\*R[0-9](_[0-9]+b)?"
+        }
+      ]
+    },
+    "numbers": {
+      "patterns": [
+        {
+          "name": "constant.numeric.hex.sayo-asm",
+          "match": "\\b0[xX][0-9a-fA-F]+\\b"
+        },
+        {
+          "name": "constant.numeric.decimal.sayo-asm",
+          "match": "\\b[0-9]+\\b"
+        },
+        {
+          "name": "constant.numeric.negative.sayo-asm",
+          "match": "-[0-9]+"
+        }
+      ]
+    },
+    "strings": {
+      "patterns": [
+        {
+          "name": "string.quoted.double.sayo-asm",
+          "begin": "\"",
+          "end": "\"",
+          "patterns": [
+            {
+              "name": "constant.character.escape.sayo-asm",
+              "match": "\\\\."
+            }
+          ]
+        }
+      ]
+    }
+  }
+}
