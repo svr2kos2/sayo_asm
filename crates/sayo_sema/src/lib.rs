@@ -69,6 +69,13 @@ pub enum SemanticError {
         line: usize,
         col: usize,
     },
+    
+    #[error("Unsupported alignment .align {value} at position {line}:{col}. Only .align 1 or no alignment is supported.")]
+    UnsupportedAlignment {
+        value: i64,
+        line: usize,
+        col: usize,
+    },
 }
 
 /// Result type for semantic analysis

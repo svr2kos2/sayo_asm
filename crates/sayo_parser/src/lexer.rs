@@ -31,6 +31,9 @@ pub enum Token {
     
     // Encoding annotation
     Encoding(Vec<u8>),
+    
+    // Quoted string
+    String(String),
 }
 
 impl fmt::Display for Token {
@@ -48,6 +51,7 @@ impl fmt::Display for Token {
             Token::Comment(_s) => write!(f, "comment"),
             Token::Newline => write!(f, "newline"),
             Token::Encoding(_) => write!(f, "encoding"),
+            Token::String(s) => write!(f, "string \"{}\"", s),
         }
     }
 }
@@ -152,24 +156,96 @@ impl<'input> Lexer<'input> {
             }
             '.' => {
                 self.advance();
-                let ident = self.read_while(|c| c.is_alphanumeric() || c == '_');
+                // Read identifier part: alphanumeric, underscore, and dots (for .L.str.1 style labels)
+                let mut ident = String::new();
+                while let Some(ch) = self.peek_char() {
+                    if ch.is_alphanumeric() || ch == '_' || ch == '.' {
+                        ident.push(ch);
+                        self.advance();
+                    } else {
+                        break;
+                    }
+                }
                 // Check if it's a directive (common directives start with known keywords)
                 if ident.is_empty() {
                     // Just a dot, might be part of something else
                     return self.next_token();
                 }
+                // Get the first segment before any additional dots
+                let first_segment = ident.split('.').next().unwrap_or(&ident);
                 // If starts with lowercase and is a known directive, treat as directive
-                let first_char = ident.chars().next().unwrap();
-                if first_char.is_lowercase() && matches!(ident.as_str(), 
+                let first_char = first_segment.chars().next().unwrap();
+                if first_char.is_lowercase() && matches!(first_segment, 
                     "text" | "data" | "bss" | "section" | "globl" | "global" | "local" |
-                    "type" | "size" | "byte" | "word" | "long" | "quad" | 
+                    "type" | "size" | "byte" | "word" | "short" | "long" | "quad" | 
                     "ascii" | "asciz" | "zero" | "align" | "p2align" | 
-                    "org" | "skip" | "file" | "ident" | "loc" | "addrsig" | "string") {
-                    Token::Directive(ident)
+                    "org" | "skip" | "file" | "ident" | "loc" | "addrsig" | "string" |
+                    "rodata") {
+                    Token::Directive(first_segment.to_string())
                 } else {
-                    // It's a local label like .LBB14_25 or .loop
+                    // It's a local label like .LBB14_25 or .L.str.1
                     Token::Identifier(format!(".{}", ident))
                 }
+            }
+            '"' => {
+                // Quoted string
+                self.advance(); // Skip opening quote
+                let mut s = String::new();
+                while let Some(ch) = self.peek_char() {
+                    if ch == '"' {
+                        self.advance(); // Skip closing quote
+                        break;
+                    } else if ch == '\\' {
+                        self.advance();
+                        // Handle escape sequences
+                        if let Some(escaped) = self.peek_char() {
+                            self.advance();
+                            match escaped {
+                                'n' => s.push('\n'),
+                                'r' => s.push('\r'),
+                                't' => s.push('\t'),
+                                '\\' => s.push('\\'),
+                                '"' => s.push('"'),
+                                'e' | 'E' => s.push('\x1b'), // ESC character
+                                // Octal escape sequences: \0, \012, \377, etc.
+                                d if d.is_ascii_digit() && d <= '7' => {
+                                    let mut octal = String::new();
+                                    octal.push(d);
+                                    // Read up to 2 more octal digits
+                                    for _ in 0..2 {
+                                        if let Some(next) = self.peek_char() {
+                                            if next.is_ascii_digit() && next <= '7' {
+                                                octal.push(next);
+                                                self.advance();
+                                            } else {
+                                                break;
+                                            }
+                                        } else {
+                                            break;
+                                        }
+                                    }
+                                    if let Ok(code) = u8::from_str_radix(&octal, 8) {
+                                        s.push(code as char);
+                                    } else {
+                                        s.push('\\');
+                                        s.push_str(&octal);
+                                    }
+                                }
+                                _ => {
+                                    s.push('\\');
+                                    s.push(escaped);
+                                }
+                            }
+                        }
+                    } else if ch == '\n' {
+                        // Newline in string - end of string (error recovery)
+                        break;
+                    } else {
+                        s.push(ch);
+                        self.advance();
+                    }
+                }
+                Token::String(s)
             }
             '0'..='9' => {
                 let num_str = self.read_while(|c| c.is_alphanumeric() || c == 'x' || c == 'X');

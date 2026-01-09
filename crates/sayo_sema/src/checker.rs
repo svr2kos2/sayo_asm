@@ -45,8 +45,30 @@ impl SemanticChecker {
             Item::Instruction(instr) => {
                 self.check_instruction(instr, item.span.start, item.span.end);
             }
+            Item::Directive(dir) => {
+                self.check_directive(dir, item.span.start, item.span.end);
+            }
+            Item::Label(_) => {
+                // Labels don't need additional semantic checking here
+            }
+        }
+    }
+    
+    fn check_directive(&mut self, dir: &sayo_ast::Directive, start: usize, end: usize) {
+        use sayo_ast::Directive;
+        match dir {
+            Directive::Align(value) => {
+                // Only .align 1 is supported (no alignment requirement)
+                if *value != 1 {
+                    self.errors.push(SemanticError::UnsupportedAlignment {
+                        value: *value as i64,
+                        line: start,
+                        col: end,
+                    });
+                }
+            }
             _ => {
-                // Labels and directives don't need semantic checking
+                // Other directives don't need semantic checking
             }
         }
     }

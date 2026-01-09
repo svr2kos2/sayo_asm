@@ -1,0 +1,36 @@
+﻿cargo : warning: associated function `extract_source_text` is never used
+At line:1 char:1
++ cargo run --release --bin sayoasm -- test_jump.s -o test_jump.bin 2>& ...
++ ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : NotSpecified: (warning: associ...` is never used:String) [], RemoteException
+    + FullyQualifiedErrorId : NativeCommandError
+ 
+   --> crates\sayo_assembler\src\listing.rs:116:8
+    |
+8   | impl Listing {
+    | ------------ associated function in this implementation
+...
+116 |     fn extract_source_text(source: &str, start: usize, end: usize) -> String {
+    |        ^^^^^^^^^^^^^^^^^^^
+    |
+    = note: `#[warn(dead_code)]` on by default
+
+warning: `sayo_assembler` (lib) generated 1 warning
+    Finished `release` profile [optimized] target(s) in 0.30s
+     Running `target\release\sayoasm.exe test_jump.s -o test_jump.bin`
+Parsing test_jump.s...
+Found 9 items
+  Item 0: Directive(Text)
+  Item 1: Directive(Globl("main"))
+  Item 2: Label("main")
+  Item 3: Instruction(Instruction { mnemonic: MOV8, operands: [Spanned { node: Register(R0), span: Span { start: 35, end: 37 } }, Spanned { node: Immediate(0), span: Span { start: 39, end: 40 } }], encoding: None })
+  Item 4: Label("loop")
+  Item 5: Instruction(Instruction { mnemonic: ADD8, operands: [Spanned { node: Register(R0), span: Span { start: 55, end: 57 } }, Spanned { node: Immediate(1), span: Span { start: 59, end: 60 } }], encoding: None })
+  Item 6: Instruction(Instruction { mnemonic: SLEEP, operands: [Spanned { node: Immediate(100), span: Span { start: 69, end: 72 } }], encoding: None })
+  Item 7: Instruction(Instruction { mnemonic: SJMP, operands: [Spanned { node: Label("loop"), span: Span { start: 80, end: 84 } }], encoding: None })
+  Item 8: Instruction(Instruction { mnemonic: RET, operands: [], encoding: None })
+Assembling...
+DEBUG: Resolved label 'loop' to address 0x0003
+Generated 11 bytes of machine code
+Text section: 11 bytes, Data section: 0 bytes
+Wrote binary to test_jump.bin

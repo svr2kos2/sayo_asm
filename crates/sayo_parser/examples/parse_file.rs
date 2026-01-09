@@ -62,9 +62,9 @@ fn main() {
             println!("  - Labels: {}", labels);
             println!("  - Instructions: {}", instructions);
             
-            // Show first 5 items
-            println!("\nFirst 5 items:");
-            for (i, item) in program.items.iter().take(5).enumerate() {
+            // Show all items
+            println!("\nAll {} items:", program.items.len());
+            for (i, item) in program.items.iter().enumerate() {
                 println!("  [{}] {:?}", i, item);
             }
         }

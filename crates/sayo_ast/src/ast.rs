@@ -9,6 +9,13 @@ pub struct Program {
     pub items: Vec<Spanned<Item>>,
 }
 
+/// A data value that can be either an immediate or a label reference
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+pub enum DataValue {
+    Immediate(i64),
+    Label(String),
+}
+
 /// Top-level item in assembly file
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub enum Item {
@@ -37,13 +44,15 @@ pub enum Directive {
     Ident(String),         // .ident <string>
     Loc(String),           // .loc <params>
     
-    // Data directives
-    Byte(Vec<i64>),   // .byte <values>
-    Word(Vec<i64>),   // .word <values>
-    Long(Vec<i64>),   // .long <values>
-    Quad(Vec<i64>),   // .quad <values>
-    Ascii(String),    // .ascii <string>
-    Zero(i64),        // .zero <count>
+    // Data directives (support both immediate values and label references)
+    Byte(Vec<DataValue>),   // .byte <values>
+    Word(Vec<DataValue>),   // .word <values>
+    Short(Vec<DataValue>),  // .short <values> (same as .word, 2 bytes)
+    Long(Vec<DataValue>),   // .long <values>
+    Quad(Vec<DataValue>),   // .quad <values>
+    Ascii(String),          // .ascii <string> (no null terminator)
+    Asciz(String),          // .asciz <string> (with null terminator)
+    Zero(i64),              // .zero <count>
     
     // Alignment directives
     Align(u32),       // .align <n>

@@ -5,6 +5,8 @@ members = [
     "crates/sayo_parser",
     "crates/sayo_lsp",
     "crates/sayo_sema",
+    "crates/sayo_assembler",
+    "crates/sayoasm",
 ]
 
 [workspace.package]

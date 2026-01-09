@@ -1,11 +1,9 @@
 [package]
-name = "sayo_sema"
+name = "sayo_assembler"
 version = "0.1.0"
 edition = "2021"
 
 [dependencies]
 sayo_ast = { path = "../sayo_ast" }
-thiserror = "1.0"
-
-[dev-dependencies]
 sayo_parser = { path = "../sayo_parser" }
+thiserror = "1.0"

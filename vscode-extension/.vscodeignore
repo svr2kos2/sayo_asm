@@ -1,0 +1,15 @@
+# 排除不需要打包的文件
+.vscode/
+.git/
+.gitignore
+**/*.map
+**/*.ts
+!out/**/*.js
+tsconfig.json
+node_modules/
+src/
+scripts/
+*.vsix
+
+# 但要包含 bin 目录中的 exe
+!bin/

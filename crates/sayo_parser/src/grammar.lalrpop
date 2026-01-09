@@ -1,14 +1,41 @@
 use sayo_ast::{
-    Program, Item, Directive, Instruction, Operand,
+    Program, Item, Directive, Instruction, Operand, DataValue,
     Mnemonic, Register, Span, Spanned,
 };
 
 grammar;
 
+// Helper function to parse escape sequences in strings
+fn parse_string_escapes(s: &str) -> String {
+    let mut result = String::with_capacity(s.len());
+    let mut chars = s.chars().peekable();
+    while let Some(c) = chars.next() {
+        if c == '\\' {
+            match chars.next() {
+                Some('n') => result.push('\n'),
+                Some('r') => result.push('\r'),
+                Some('t') => result.push('\t'),
+                Some('0') => result.push('\0'),
+                Some('\\') => result.push('\\'),
+                Some('"') => result.push('"'),
+                Some(other) => {
+                    result.push('\\');
+                    result.push(other);
+                }
+                None => result.push('\\'),
+            }
+        } else {
+            result.push(c);
+        }
+    }
+    result
+}
+
 match {
-    r"[ \t]+" => { },  // Skip spaces and tabs (not newlines)
+    r"[ \t\r]+" => { },  // Skip spaces, tabs, and carriage returns (not newlines)
     r";[^\n]*" => COMMENT,  // Comments
-    r"\.[a-zA-Z_][a-zA-Z0-9_]*" => DIRECTIVE,
+    r"\.[a-zA-Z_][a-zA-Z0-9_.]*" => DIRECTIVE,  // Allow dots in directives for labels like .L.str.1
+    r#""[^"]*""# => STRING,  // Quoted strings
     r"[a-zA-Z_*][a-zA-Z0-9_*]*" => IDENT,
     r"-?[0-9]+" => INT,
     r"0[xX][0-9a-fA-F]+" => HEX,
@@ -35,6 +62,11 @@ Line: Option<Spanned<Item>> = {
     <start:@L> <id:IDENT> ":" <end:@R> => {
         Some(Spanned::new(Item::Label(id.to_string()), Span::new(start, end)))
     },
+    // Labels that look like directives: .L.str.1:, .LBB6_4:
+    <start:@L> <dir:DIRECTIVE> ":" <end:@R> => {
+        // It's actually a local label
+        Some(Spanned::new(Item::Label(dir.to_string()), Span::new(start, end)))
+    },
     <start:@L> <i:Instruction> <end:@R> => {
         Some(Spanned::new(Item::Instruction(i), Span::new(start, end)))
     },
@@ -42,43 +74,112 @@ Line: Option<Spanned<Item>> = {
 
 // Directives
 Directive: Directive = {
-    DIRECTIVE => {
-        let s = <>.trim_start_matches('.');
-        match s {
-            "text" => Directive::Text,
-            "data" => Directive::Data,
-            "bss" => Directive::Bss,
-            _ => Directive::Text,
-        }
-    },
-    <d:DIRECTIVE> <name:IDENT> => {
-        let s = d.trim_start_matches('.');
-        match s {
-            "file" => Directive::File(name.to_string()),
-            "ident" => Directive::Ident(name.to_string()),
-            "globl" | "global" => Directive::Globl(name.to_string()),
-            "local" => Directive::Local(name.to_string()),
-            "section" => Directive::Section(name.to_string()),
-            "ascii" | "asciz" => Directive::Ascii(name.to_string()),
-            "loc" => Directive::Loc(name.to_string()),
-            "type" => Directive::Type(name.to_string(), String::new()),
-            _ => Directive::Text,
-        }
-    },
+    // Rule for directives followed by integers (must be checked first)
     <d:DIRECTIVE> <num:INT> => {
         let s = d.trim_start_matches('.');
+        let first_segment = s.split('.').next().unwrap_or(s);
         let n = num.parse::<i64>().unwrap_or(0);
-        match s {
+        match first_segment {
             "align" => Directive::Align(n as u32),
             "p2align" => Directive::P2align(n as u32),
             "zero" => Directive::Zero(n),
             "org" => Directive::Org(n),
             "skip" => Directive::Skip(n),
-            "byte" => Directive::Byte(vec![n]),
-            "word" => Directive::Word(vec![n]),
-            "long" => Directive::Long(vec![n]),
-            "quad" => Directive::Quad(vec![n]),
+            "byte" => Directive::Byte(vec![DataValue::Immediate(n)]),
+            "word" => Directive::Word(vec![DataValue::Immediate(n)]),
+            "short" => Directive::Short(vec![DataValue::Immediate(n)]),
+            "long" => Directive::Long(vec![DataValue::Immediate(n)]),
+            "quad" => Directive::Quad(vec![DataValue::Immediate(n)]),
             _ => Directive::Align(n as u32),
+        }
+    },
+    <d:DIRECTIVE> <hex:HEX> => {
+        let s = d.trim_start_matches('.');
+        let first_segment = s.split('.').next().unwrap_or(s);
+        let n = u64::from_str_radix(hex.trim_start_matches("0x").trim_start_matches("0X"), 16).unwrap_or(0) as i64;
+        match first_segment {
+            "byte" => Directive::Byte(vec![DataValue::Immediate(n)]),
+            "word" => Directive::Word(vec![DataValue::Immediate(n)]),
+            "short" => Directive::Short(vec![DataValue::Immediate(n)]),
+            "long" => Directive::Long(vec![DataValue::Immediate(n)]),
+            "quad" => Directive::Quad(vec![DataValue::Immediate(n)]),
+            _ => Directive::Long(vec![DataValue::Immediate(n)]),
+        }
+    },
+    // Standalone directive (no arguments)
+    DIRECTIVE => {
+        let s = <>.trim_start_matches('.');
+        // Handle labels like .L.str.1 - they look like directives but are actually labels
+        let first_segment = s.split('.').next().unwrap_or(s);
+        if first_segment.chars().next().map_or(false, |c| c.is_uppercase()) {
+            // It's actually a label like .LBB or .L.str.1
+            // This should not happen as we return Text for parsing purposes
+            // The parser should handle this via label rules
+            Directive::Text // Fallback
+        } else {
+            match first_segment {
+                "text" => Directive::Text,
+                "data" => Directive::Data,
+                "bss" => Directive::Bss,
+                "rodata" => Directive::Section("rodata".to_string()),
+                _ => Directive::Text,
+            }
+        }
+    },
+    <d:DIRECTIVE> <name:IDENT> => {
+        let s = d.trim_start_matches('.');
+        let first_segment = s.split('.').next().unwrap_or(s);
+        match first_segment {
+            "file" => Directive::File(name.to_string()),
+            "ident" => Directive::Ident(name.to_string()),
+            "globl" | "global" => Directive::Globl(name.to_string()),
+            "local" => Directive::Local(name.to_string()),
+            "section" => Directive::Section(name.to_string()),
+            "loc" => Directive::Loc(name.to_string()),
+            "type" => Directive::Type(name.to_string(), String::new()),
+            // Data directives with label reference
+            "byte" => Directive::Byte(vec![DataValue::Label(name.to_string())]),
+            "word" => Directive::Word(vec![DataValue::Label(name.to_string())]),
+            "short" => Directive::Short(vec![DataValue::Label(name.to_string())]),
+            "long" => Directive::Long(vec![DataValue::Label(name.to_string())]),
+            "quad" => Directive::Quad(vec![DataValue::Label(name.to_string())]),
+            _ => Directive::Text,
+        }
+    },
+    <d:DIRECTIVE> <str:STRING> => {
+        let s = d.trim_start_matches('.');
+        let first_segment = s.split('.').next().unwrap_or(s);
+        // Remove quotes from string
+        let content = str.trim_matches('"');
+        // Parse escape sequences
+        let parsed = parse_string_escapes(content);
+        match first_segment {
+            "ascii" => Directive::Ascii(parsed),
+            "asciz" | "string" => Directive::Asciz(parsed),
+            "file" => Directive::File(parsed),
+            "ident" => Directive::Ident(parsed),
+            "section" => Directive::Section(parsed),
+            _ => Directive::Ascii(parsed),
+        }
+    },
+    // Data directive with label reference: .long .L.str or .long label
+    // Also handles .section .rodata...
+    <d:DIRECTIVE> <label:DIRECTIVE> => {
+        let s = d.trim_start_matches('.');
+        let first_segment = s.split('.').next().unwrap_or(s);
+        match first_segment {
+            "byte" => Directive::Byte(vec![DataValue::Label(label.to_string())]),
+            "word" => Directive::Word(vec![DataValue::Label(label.to_string())]),
+            "short" => Directive::Short(vec![DataValue::Label(label.to_string())]),
+            "long" => Directive::Long(vec![DataValue::Label(label.to_string())]),
+            "quad" => Directive::Quad(vec![DataValue::Label(label.to_string())]),
+            "globl" | "global" => Directive::Globl(label.to_string()),
+            "local" => Directive::Local(label.to_string()),
+            "type" => Directive::Type(label.to_string(), String::new()),
+            "size" => Directive::Size(label.to_string(), String::new()),
+            // .section .rodata... => store as Section(label)
+            "section" => Directive::Section(label.to_string()),
+            _ => Directive::Long(vec![DataValue::Label(label.to_string())]),
         }
     },
 };
@@ -120,6 +221,10 @@ Operand: Spanned<Operand> = {
         } else {
             Spanned::new(Operand::Label(id.to_string()), Span::new(start, end))
         }
+    },
+    // Handle local labels like .LBB6_4 or .L.str.1 as operands
+    <start:@L> <dir:DIRECTIVE> <end:@R> => {
+        Spanned::new(Operand::Label(dir.to_string()), Span::new(start, end))
     },
     <start:@L> <n:INT> <end:@R> => {
         let val = n.parse::<i64>().unwrap_or(0);

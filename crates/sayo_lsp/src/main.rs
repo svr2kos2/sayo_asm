@@ -574,6 +574,9 @@ impl Backend {
                             SemanticError::MixedDirectivesAndInstructions { line, col } => {
                                 (*line, *col, "Directives and instructions cannot be mixed in the same section (between labels)".to_string())
                             }
+                            SemanticError::UnsupportedAlignment { value, line, col } => {
+                                (*line, *col, format!("Unsupported alignment value: .align {} (only .align 1 is supported)", value))
+                            }
                         };
                         
                         let (lsp_line, lsp_col) = position_from_offset(text, line);
