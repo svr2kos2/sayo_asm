@@ -365,18 +365,18 @@ impl<'a> Encoder<'a> {
                             bytes.push(target_addr as u8);
                         }
                         Mnemonic::JMP => {
-                            // JMP uses 16-bit absolute address (little-endian)
+                            // JMP uses 16-bit absolute address (big-endian)
                             if target_addr < 0 || target_addr > 65535 {
                                 return Err(EncodeError::ImmediateOutOfRange(target_addr, 16));
                             }
-                            bytes.extend_from_slice(&(target_addr as u16).to_le_bytes());
+                            bytes.extend_from_slice(&(target_addr as u16).to_be_bytes());
                         }
                         _ => {
-                            // Default: use 16-bit absolute address for other label operands
+                            // Default: use 16-bit absolute address for other label operands (big-endian)
                             if target_addr < 0 || target_addr > 65535 {
                                 return Err(EncodeError::ImmediateOutOfRange(target_addr, 16));
                             }
-                            bytes.extend_from_slice(&(target_addr as u16).to_le_bytes());
+                            bytes.extend_from_slice(&(target_addr as u16).to_be_bytes());
                         }
                     }
                 }

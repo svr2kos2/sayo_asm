@@ -226,6 +226,28 @@ fn parse_directive(name: &str, lexer: &mut Lexer) -> Result<Directive, ParseErro
             }
             Ok(Directive::Size(sym_name, size_expr))
         }
+        "addrsig" => {
+            // .addrsig has no arguments, just consume rest of line
+            consume_rest_of_line(lexer);
+            Ok(Directive::Addrsig)
+        }
+        "addrsig_sym" => {
+            // Parse symbol name (can be identifier or directive-like .L.str.1)
+            match lexer.peek_token() {
+                Some((_, Token::Identifier(label), _)) => {
+                    lexer.next_token();
+                    Ok(Directive::AddrsigSym(label))
+                }
+                Some((_, Token::Directive(label), _)) => {
+                    lexer.next_token();
+                    Ok(Directive::AddrsigSym(format!(".{}", label)))
+                }
+                _ => {
+                    // No symbol provided, treat as empty
+                    Ok(Directive::AddrsigSym(String::new()))
+                }
+            }
+        }
         _ => {
             // Unknown directive - check if it looks like a label
             // (starts with uppercase like .LBB or .L.str.1)

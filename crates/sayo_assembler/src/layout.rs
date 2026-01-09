@@ -238,6 +238,8 @@ impl LayoutPass {
             | Directive::File(_)
             | Directive::Ident(_)
             | Directive::Loc(_)
+            | Directive::Addrsig
+            | Directive::AddrsigSym(_)
             | Directive::Bss => {
                 // No address increment
             }

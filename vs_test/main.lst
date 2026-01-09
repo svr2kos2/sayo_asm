@@ -1,8 +1,8 @@
-    ; JMP main                                                   ; @ 0x0000 -> [0x02,0xcf,0x03]
+    ; JMP main                                                   ; @ 0x0000 -> [0x02,0x02,0x6d]
 ; header:                                                        ; @ 0x0003
     ; "SAYO"                                                     ; @ 0x0003 -> [0x53,0x41,0x59,0x4f]
     ; version 1                                                  ; @ 0x0007 -> [0x01]
-    ; text_size 1176                                             ; @ 0x0008 -> [0x98, 0x04]
+    ; text_size 648                                             ; @ 0x0008 -> [0x88, 0x02]
     ; reserved byte                                              ; @ 0x000a -> [0x00]
 ;assembly begin                                                  ; @ 0x000b
     .text                                                        ; @ 0x000b
@@ -18,731 +18,408 @@ sys_key_count:                          ; @sys_key_count         ; @ 0x000b
 .Lfunc_end0:                                                     ; @ 0x000f
     .size    sys_key_count, .Lfunc_end0-sys_key_count            ; @ 0x000f
                                         ; -- End function
-    .globl    print_reg                       ; -- Begin function print_reg
-    .type    print_reg,@function
-print_reg:                              ; @print_reg             ; @ 0x000f
-; %bb.0:                                ; %entry
-    ;APP
-    PRINT_REG R0                                                 ; @ 0x000f -> [0x34,0x04]
-    ;NO_APP
-    RET                                                          ; @ 0x0011 -> [0x55]
-.Lfunc_end1:                                                     ; @ 0x0012
-    .size    print_reg, .Lfunc_end1-print_reg                    ; @ 0x0012
-                                        ; -- End function
     .globl    press_and_release_gk            ; -- Begin function press_and_release_gk
     .type    press_and_release_gk,@function
-press_and_release_gk:                   ; @press_and_release_gk  ; @ 0x0012
+press_and_release_gk:                   ; @press_and_release_gk  ; @ 0x000f
 ; %bb.0:                                ; %entry
-    AND8 R0, 255                                                 ; @ 0x0012 -> [0x57,0x04,0xff]
     ;APP
-    PRESS_GK_VAL R0                                              ; @ 0x0015 -> [0x15,0x04]
+    PRESS_GK_VAL R0                                              ; @ 0x000f -> [0x15,0x04]
     ;NO_APP
     ;APP
-    SLEEP 10                                                     ; @ 0x0017 -> [0x06,0x0a]
+    SLEEP_U16 1000                                               ; @ 0x0011 -> [0x0d,0xe8,0x03]
     ;NO_APP
     ;APP
-    RELEASE_GK_VAL R0                                            ; @ 0x0019 -> [0x1d,0x04]
+    RELEASE_GK_VAL R0                                            ; @ 0x0014 -> [0x1d,0x04]
     ;NO_APP
     ;APP
-    SLEEP 10                                                     ; @ 0x001b -> [0x06,0x0a]
+    SLEEP_U16 1000                                               ; @ 0x0016 -> [0x0d,0xe8,0x03]
     ;NO_APP
-    RET                                                          ; @ 0x001d -> [0x55]
-.Lfunc_end2:                                                     ; @ 0x001e
-    .size    press_and_release_gk, .Lfunc_end2-press_and_release_gk  ; @ 0x001e
+    RET                                                          ; @ 0x0019 -> [0x55]
+.Lfunc_end1:                                                     ; @ 0x001a
+    .size    press_and_release_gk, .Lfunc_end1-press_and_release_gk  ; @ 0x001a
                                         ; -- End function
     .globl    sayo_malloc                     ; -- Begin function sayo_malloc
     .type    sayo_malloc,@function
-sayo_malloc:                            ; @sayo_malloc           ; @ 0x001e
+sayo_malloc:                            ; @sayo_malloc           ; @ 0x001a
 ; %bb.0:                                ; %entry
     ;APP
-    MALLOC R0                                                    ; @ 0x001e -> [0xf0,0x04]
+    MALLOC R0                                                    ; @ 0x001a -> [0xf0,0x04]
     ;NO_APP
-    RET                                                          ; @ 0x0020 -> [0x55]
-.Lfunc_end3:                                                     ; @ 0x0021
-    .size    sayo_malloc, .Lfunc_end3-sayo_malloc                ; @ 0x0021
+    RET                                                          ; @ 0x001c -> [0x55]
+.Lfunc_end2:                                                     ; @ 0x001d
+    .size    sayo_malloc, .Lfunc_end2-sayo_malloc                ; @ 0x001d
                                         ; -- End function
     .globl    sayo_free                       ; -- Begin function sayo_free
     .type    sayo_free,@function
-sayo_free:                              ; @sayo_free             ; @ 0x0021
+sayo_free:                              ; @sayo_free             ; @ 0x001d
 ; %bb.0:                                ; %entry
     ;APP
-    FREE R0                                                      ; @ 0x0021 -> [0xf1,0x04]
+    FREE R0                                                      ; @ 0x001d -> [0xf1,0x04]
+    ;NO_APP
+    RET                                                          ; @ 0x001f -> [0x55]
+.Lfunc_end3:                                                     ; @ 0x0020
+    .size    sayo_free, .Lfunc_end3-sayo_free                    ; @ 0x0020
+                                        ; -- End function
+    .globl    get_gl_size                     ; -- Begin function get_gl_size
+    .type    get_gl_size,@function
+get_gl_size:                            ; @get_gl_size           ; @ 0x0020
+; %bb.0:                                ; %entry
+    ;APP
+    mov R0, GL_SIZE                                              ; @ 0x0020 -> [0x6e,0x04,0x7f]
     ;NO_APP
     RET                                                          ; @ 0x0023 -> [0x55]
 .Lfunc_end4:                                                     ; @ 0x0024
-    .size    sayo_free, .Lfunc_end4-sayo_free                    ; @ 0x0024
-                                        ; -- End function
-    .globl    gl_size                         ; -- Begin function gl_size
-    .type    gl_size,@function
-gl_size:                                ; @gl_size               ; @ 0x0024
-; %bb.0:                                ; %entry
-    ;APP
-    mov R0, GL_SIZE                                              ; @ 0x0024 -> [0x6e,0x04,0x7f]
-    ;NO_APP
-    RET                                                          ; @ 0x0027 -> [0x55]
-.Lfunc_end5:                                                     ; @ 0x0028
-    .size    gl_size, .Lfunc_end5-gl_size                        ; @ 0x0028
+    .size    get_gl_size, .Lfunc_end4-get_gl_size                ; @ 0x0024
                                         ; -- End function
     .globl    set_gl                          ; -- Begin function set_gl
     .type    set_gl,@function
-set_gl:                                 ; @set_gl                ; @ 0x0028
+set_gl:                                 ; @set_gl                ; @ 0x0024
 ; %bb.0:                                ; %entry
-    MOV8 R2, 1                                                   ; @ 0x0028 -> [0x6f,0x06,0x01]
-    JG R0, R2, .LBB6_4                                           ; @ 0x002b -> [0x46,0x04,0x06,0x43,0x00]
+    MOV8 R2, 1                                                   ; @ 0x0024 -> [0x6f,0x06,0x01]
+    JG R0, R2, .LBB5_4                                           ; @ 0x0027 -> [0x46,0x04,0x06,0x00,0x3f]
 ; %bb.1:                                ; %entry
-    JZ R0, .LBB6_7                                               ; @ 0x0030 -> [0x50,0x04,0x60,0x00]
+    JZ R0, .LBB5_7                                               ; @ 0x002c -> [0x50,0x04,0x00,0x5c]
 ; %bb.2:                                ; %entry
-    XOR_R R0, R0, R2                                             ; @ 0x0034 -> [0x86,0x04,0x04,0x06]
-    JZ R0, .LBB6_3                                               ; @ 0x0038 -> [0x50,0x04,0x3f,0x00]
-    JMP .LBB6_9                                                  ; @ 0x003c -> [0x02,0x67,0x00]
-.LBB6_3:                                ; %if.then2              ; @ 0x003f
+    XOR_R R0, R0, R2                                             ; @ 0x0030 -> [0x86,0x04,0x04,0x06]
+    JZ R0, .LBB5_3                                               ; @ 0x0034 -> [0x50,0x04,0x00,0x3b]
+    JMP .LBB5_9                                                  ; @ 0x0038 -> [0x02,0x00,0x63]
+.LBB5_3:                                ; %if.then2              ; @ 0x003b
     ;APP
-    mov GL_1, R1                                                 ; @ 0x003f -> [0x6e,0x81,0x05]
+    mov GL_1, R1                                                 ; @ 0x003b -> [0x6e,0x81,0x05]
     ;NO_APP
-    RET                                                          ; @ 0x0042 -> [0x55]
-.LBB6_4:                                ; %entry                 ; @ 0x0043
-    MOV8 R2, 2                                                   ; @ 0x0043 -> [0x6f,0x06,0x02]
-    XOR_R R2, R0, R2                                             ; @ 0x0046 -> [0x86,0x06,0x04,0x06]
-    JZ R2, .LBB6_8                                               ; @ 0x004a -> [0x50,0x06,0x64,0x00]
+    RET                                                          ; @ 0x003e -> [0x55]
+.LBB5_4:                                ; %entry                 ; @ 0x003f
+    MOV8 R2, 2                                                   ; @ 0x003f -> [0x6f,0x06,0x02]
+    XOR_R R2, R0, R2                                             ; @ 0x0042 -> [0x86,0x06,0x04,0x06]
+    JZ R2, .LBB5_8                                               ; @ 0x0046 -> [0x50,0x06,0x00,0x60]
 ; %bb.5:                                ; %entry
-    MOV8 R2, 3                                                   ; @ 0x004e -> [0x6f,0x06,0x03]
-    XOR_R R0, R0, R2                                             ; @ 0x0051 -> [0x86,0x04,0x04,0x06]
-    JZ R0, .LBB6_6                                               ; @ 0x0055 -> [0x50,0x04,0x5c,0x00]
-    JMP .LBB6_9                                                  ; @ 0x0059 -> [0x02,0x67,0x00]
-.LBB6_6:                                ; %if.then8              ; @ 0x005c
+    MOV8 R2, 3                                                   ; @ 0x004a -> [0x6f,0x06,0x03]
+    XOR_R R0, R0, R2                                             ; @ 0x004d -> [0x86,0x04,0x04,0x06]
+    JZ R0, .LBB5_6                                               ; @ 0x0051 -> [0x50,0x04,0x00,0x58]
+    JMP .LBB5_9                                                  ; @ 0x0055 -> [0x02,0x00,0x63]
+.LBB5_6:                                ; %if.then8              ; @ 0x0058
     ;APP
-    mov GL_3, R1                                                 ; @ 0x005c -> [0x6e,0x83,0x05]
+    mov GL_3, R1                                                 ; @ 0x0058 -> [0x6e,0x83,0x05]
+    ;NO_APP
+    RET                                                          ; @ 0x005b -> [0x55]
+.LBB5_7:                                ; %if.then               ; @ 0x005c
+    ;APP
+    mov GL_0, R1                                                 ; @ 0x005c -> [0x6e,0x80,0x05]
     ;NO_APP
     RET                                                          ; @ 0x005f -> [0x55]
-.LBB6_7:                                ; %if.then               ; @ 0x0060
+.LBB5_8:                                ; %if.then5              ; @ 0x0060
     ;APP
-    mov GL_0, R1                                                 ; @ 0x0060 -> [0x6e,0x80,0x05]
+    mov GL_2, R1                                                 ; @ 0x0060 -> [0x6e,0x82,0x05]
     ;NO_APP
+.LBB5_9:                                ; %if.end11              ; @ 0x0063
     RET                                                          ; @ 0x0063 -> [0x55]
-.LBB6_8:                                ; %if.then5              ; @ 0x0064
-    ;APP
-    mov GL_2, R1                                                 ; @ 0x0064 -> [0x6e,0x82,0x05]
-    ;NO_APP
-.LBB6_9:                                ; %if.end11              ; @ 0x0067
-    RET                                                          ; @ 0x0067 -> [0x55]
-.Lfunc_end6:                                                     ; @ 0x0068
-    .size    set_gl, .Lfunc_end6-set_gl                          ; @ 0x0068
+.Lfunc_end5:                                                     ; @ 0x0064
+    .size    set_gl, .Lfunc_end5-set_gl                          ; @ 0x0064
                                         ; -- End function
     .globl    get_gl                          ; -- Begin function get_gl
     .type    get_gl,@function
-get_gl:                                 ; @get_gl                ; @ 0x0068
+get_gl:                                 ; @get_gl                ; @ 0x0064
 ; %bb.0:                                ; %entry
-    MOV R1, R0                                                   ; @ 0x0068 -> [0x6e,0x05,0x04]
-    MOV8 R0, 0                                                   ; @ 0x006b -> [0x6f,0x04,0x00]
-    MOV8 R2, 1                                                   ; @ 0x006e -> [0x6f,0x06,0x01]
-    JG R1, R2, .LBB7_4                                           ; @ 0x0071 -> [0x46,0x05,0x06,0x89,0x00]
+    MOV R1, R0                                                   ; @ 0x0064 -> [0x6e,0x05,0x04]
+    MOV8 R0, 0                                                   ; @ 0x0067 -> [0x6f,0x04,0x00]
+    MOV8 R2, 1                                                   ; @ 0x006a -> [0x6f,0x06,0x01]
+    JG R1, R2, .LBB6_4                                           ; @ 0x006d -> [0x46,0x05,0x06,0x00,0x85]
 ; %bb.1:                                ; %entry
-    JZ R1, .LBB7_7                                               ; @ 0x0076 -> [0x50,0x05,0xa6,0x00]
+    JZ R1, .LBB6_7                                               ; @ 0x0072 -> [0x50,0x05,0x00,0xa2]
 ; %bb.2:                                ; %entry
-    XOR_R R1, R1, R2                                             ; @ 0x007a -> [0x86,0x05,0x05,0x06]
-    JZ R1, .LBB7_3                                               ; @ 0x007e -> [0x50,0x05,0x85,0x00]
-    JMP .LBB7_9                                                  ; @ 0x0082 -> [0x02,0xad,0x00]
-.LBB7_3:                                ; %if.then2              ; @ 0x0085
+    XOR_R R1, R1, R2                                             ; @ 0x0076 -> [0x86,0x05,0x05,0x06]
+    JZ R1, .LBB6_3                                               ; @ 0x007a -> [0x50,0x05,0x00,0x81]
+    JMP .LBB6_9                                                  ; @ 0x007e -> [0x02,0x00,0xa9]
+.LBB6_3:                                ; %if.then2              ; @ 0x0081
     ;APP
-    mov R0, GL_1                                                 ; @ 0x0085 -> [0x6e,0x04,0x81]
+    mov R0, GL_1                                                 ; @ 0x0081 -> [0x6e,0x04,0x81]
     ;NO_APP
-    RET                                                          ; @ 0x0088 -> [0x55]
-.LBB7_4:                                ; %entry                 ; @ 0x0089
-    MOV8 R2, 2                                                   ; @ 0x0089 -> [0x6f,0x06,0x02]
-    XOR_R R2, R1, R2                                             ; @ 0x008c -> [0x86,0x06,0x05,0x06]
-    JZ R2, .LBB7_8                                               ; @ 0x0090 -> [0x50,0x06,0xaa,0x00]
+    RET                                                          ; @ 0x0084 -> [0x55]
+.LBB6_4:                                ; %entry                 ; @ 0x0085
+    MOV8 R2, 2                                                   ; @ 0x0085 -> [0x6f,0x06,0x02]
+    XOR_R R2, R1, R2                                             ; @ 0x0088 -> [0x86,0x06,0x05,0x06]
+    JZ R2, .LBB6_8                                               ; @ 0x008c -> [0x50,0x06,0x00,0xa6]
 ; %bb.5:                                ; %entry
-    MOV8 R2, 3                                                   ; @ 0x0094 -> [0x6f,0x06,0x03]
-    XOR_R R1, R1, R2                                             ; @ 0x0097 -> [0x86,0x05,0x05,0x06]
-    JZ R1, .LBB7_6                                               ; @ 0x009b -> [0x50,0x05,0xa2,0x00]
-    JMP .LBB7_9                                                  ; @ 0x009f -> [0x02,0xad,0x00]
-.LBB7_6:                                ; %if.then8              ; @ 0x00a2
+    MOV8 R2, 3                                                   ; @ 0x0090 -> [0x6f,0x06,0x03]
+    XOR_R R1, R1, R2                                             ; @ 0x0093 -> [0x86,0x05,0x05,0x06]
+    JZ R1, .LBB6_6                                               ; @ 0x0097 -> [0x50,0x05,0x00,0x9e]
+    JMP .LBB6_9                                                  ; @ 0x009b -> [0x02,0x00,0xa9]
+.LBB6_6:                                ; %if.then8              ; @ 0x009e
     ;APP
-    mov R0, GL_3                                                 ; @ 0x00a2 -> [0x6e,0x04,0x83]
+    mov R0, GL_3                                                 ; @ 0x009e -> [0x6e,0x04,0x83]
+    ;NO_APP
+    RET                                                          ; @ 0x00a1 -> [0x55]
+.LBB6_7:                                ; %if.then               ; @ 0x00a2
+    ;APP
+    mov R0, GL_0                                                 ; @ 0x00a2 -> [0x6e,0x04,0x80]
     ;NO_APP
     RET                                                          ; @ 0x00a5 -> [0x55]
-.LBB7_7:                                ; %if.then               ; @ 0x00a6
+.LBB6_8:                                ; %if.then5              ; @ 0x00a6
     ;APP
-    mov R0, GL_0                                                 ; @ 0x00a6 -> [0x6e,0x04,0x80]
+    mov R0, GL_2                                                 ; @ 0x00a6 -> [0x6e,0x04,0x82]
     ;NO_APP
+.LBB6_9:                                ; %if.end11              ; @ 0x00a9
     RET                                                          ; @ 0x00a9 -> [0x55]
-.LBB7_8:                                ; %if.then5              ; @ 0x00aa
-    ;APP
-    mov R0, GL_2                                                 ; @ 0x00aa -> [0x6e,0x04,0x82]
-    ;NO_APP
-.LBB7_9:                                ; %if.end11              ; @ 0x00ad
-    RET                                                          ; @ 0x00ad -> [0x55]
-.Lfunc_end7:                                                     ; @ 0x00ae
-    .size    get_gl, .Lfunc_end7-get_gl                          ; @ 0x00ae
+.Lfunc_end6:                                                     ; @ 0x00aa
+    .size    get_gl, .Lfunc_end6-get_gl                          ; @ 0x00aa
                                         ; -- End function
     .globl    get_arg                         ; -- Begin function get_arg
     .type    get_arg,@function
-get_arg:                                ; @get_arg               ; @ 0x00ae
+get_arg:                                ; @get_arg               ; @ 0x00aa
 ; %bb.0:                                ; %entry
-    MOV R1, R0                                                   ; @ 0x00ae -> [0x6e,0x05,0x04]
-    MOV8 R0, 0                                                   ; @ 0x00b1 -> [0x6f,0x04,0x00]
-    MOV8 R2, 1                                                   ; @ 0x00b4 -> [0x6f,0x06,0x01]
-    JG R1, R2, .LBB8_4                                           ; @ 0x00b7 -> [0x46,0x05,0x06,0xcf,0x00]
+    MOV R1, R0                                                   ; @ 0x00aa -> [0x6e,0x05,0x04]
+    MOV8 R0, 0                                                   ; @ 0x00ad -> [0x6f,0x04,0x00]
+    MOV8 R2, 1                                                   ; @ 0x00b0 -> [0x6f,0x06,0x01]
+    JG R1, R2, .LBB7_4                                           ; @ 0x00b3 -> [0x46,0x05,0x06,0x00,0xcb]
 ; %bb.1:                                ; %entry
-    JZ R1, .LBB8_7                                               ; @ 0x00bc -> [0x50,0x05,0xec,0x00]
+    JZ R1, .LBB7_7                                               ; @ 0x00b8 -> [0x50,0x05,0x00,0xe8]
 ; %bb.2:                                ; %entry
-    XOR_R R1, R1, R2                                             ; @ 0x00c0 -> [0x86,0x05,0x05,0x06]
-    JZ R1, .LBB8_3                                               ; @ 0x00c4 -> [0x50,0x05,0xcb,0x00]
-    JMP .LBB8_9                                                  ; @ 0x00c8 -> [0x02,0xf3,0x00]
-.LBB8_3:                                ; %if.then2              ; @ 0x00cb
+    XOR_R R1, R1, R2                                             ; @ 0x00bc -> [0x86,0x05,0x05,0x06]
+    JZ R1, .LBB7_3                                               ; @ 0x00c0 -> [0x50,0x05,0x00,0xc7]
+    JMP .LBB7_9                                                  ; @ 0x00c4 -> [0x02,0x00,0xef]
+.LBB7_3:                                ; %if.then2              ; @ 0x00c7
     ;APP
-    mov R0, V1                                                   ; @ 0x00cb -> [0x6e,0x04,0x01]
+    mov R0, V1                                                   ; @ 0x00c7 -> [0x6e,0x04,0x01]
     ;NO_APP
-    RET                                                          ; @ 0x00ce -> [0x55]
-.LBB8_4:                                ; %entry                 ; @ 0x00cf
-    MOV8 R2, 2                                                   ; @ 0x00cf -> [0x6f,0x06,0x02]
-    XOR_R R2, R1, R2                                             ; @ 0x00d2 -> [0x86,0x06,0x05,0x06]
-    JZ R2, .LBB8_8                                               ; @ 0x00d6 -> [0x50,0x06,0xf0,0x00]
+    RET                                                          ; @ 0x00ca -> [0x55]
+.LBB7_4:                                ; %entry                 ; @ 0x00cb
+    MOV8 R2, 2                                                   ; @ 0x00cb -> [0x6f,0x06,0x02]
+    XOR_R R2, R1, R2                                             ; @ 0x00ce -> [0x86,0x06,0x05,0x06]
+    JZ R2, .LBB7_8                                               ; @ 0x00d2 -> [0x50,0x06,0x00,0xec]
 ; %bb.5:                                ; %entry
-    MOV8 R2, 3                                                   ; @ 0x00da -> [0x6f,0x06,0x03]
-    XOR_R R1, R1, R2                                             ; @ 0x00dd -> [0x86,0x05,0x05,0x06]
-    JZ R1, .LBB8_6                                               ; @ 0x00e1 -> [0x50,0x05,0xe8,0x00]
-    JMP .LBB8_9                                                  ; @ 0x00e5 -> [0x02,0xf3,0x00]
-.LBB8_6:                                ; %if.then8              ; @ 0x00e8
+    MOV8 R2, 3                                                   ; @ 0x00d6 -> [0x6f,0x06,0x03]
+    XOR_R R1, R1, R2                                             ; @ 0x00d9 -> [0x86,0x05,0x05,0x06]
+    JZ R1, .LBB7_6                                               ; @ 0x00dd -> [0x50,0x05,0x00,0xe4]
+    JMP .LBB7_9                                                  ; @ 0x00e1 -> [0x02,0x00,0xef]
+.LBB7_6:                                ; %if.then8              ; @ 0x00e4
     ;APP
-    mov R0, V3                                                   ; @ 0x00e8 -> [0x6e,0x04,0x03]
+    mov R0, V3                                                   ; @ 0x00e4 -> [0x6e,0x04,0x03]
+    ;NO_APP
+    RET                                                          ; @ 0x00e7 -> [0x55]
+.LBB7_7:                                ; %if.then               ; @ 0x00e8
+    ;APP
+    mov R0, V0                                                   ; @ 0x00e8 -> [0x6e,0x04,0x00]
     ;NO_APP
     RET                                                          ; @ 0x00eb -> [0x55]
-.LBB8_7:                                ; %if.then               ; @ 0x00ec
+.LBB7_8:                                ; %if.then5              ; @ 0x00ec
     ;APP
-    mov R0, V0                                                   ; @ 0x00ec -> [0x6e,0x04,0x00]
+    mov R0, V2                                                   ; @ 0x00ec -> [0x6e,0x04,0x02]
     ;NO_APP
+.LBB7_9:                                ; %if.end11              ; @ 0x00ef
     RET                                                          ; @ 0x00ef -> [0x55]
-.LBB8_8:                                ; %if.then5              ; @ 0x00f0
-    ;APP
-    mov R0, V2                                                   ; @ 0x00f0 -> [0x6e,0x04,0x02]
-    ;NO_APP
-.LBB8_9:                                ; %if.end11              ; @ 0x00f3
-    RET                                                          ; @ 0x00f3 -> [0x55]
-.Lfunc_end8:                                                     ; @ 0x00f4
-    .size    get_arg, .Lfunc_end8-get_arg                        ; @ 0x00f4
+.Lfunc_end7:                                                     ; @ 0x00f0
+    .size    get_arg, .Lfunc_end7-get_arg                        ; @ 0x00f0
                                         ; -- End function
     .globl    wait_if_press                   ; -- Begin function wait_if_press
     .type    wait_if_press,@function
-wait_if_press:                          ; @wait_if_press         ; @ 0x00f4
+wait_if_press:                          ; @wait_if_press         ; @ 0x00f0
 ; %bb.0:                                ; %entry
     ;APP
-    WAIT_IF_PRESS                                                ; @ 0x00f4 -> [0xfa]
+    WAIT_IF_PRESS                                                ; @ 0x00f0 -> [0xfa]
     ;NO_APP
-    RET                                                          ; @ 0x00f5 -> [0x55]
-.Lfunc_end9:                                                     ; @ 0x00f6
-    .size    wait_if_press, .Lfunc_end9-wait_if_press            ; @ 0x00f6
+    RET                                                          ; @ 0x00f1 -> [0x55]
+.Lfunc_end8:                                                     ; @ 0x00f2
+    .size    wait_if_press, .Lfunc_end8-wait_if_press            ; @ 0x00f2
                                         ; -- End function
     .globl    wait_if_release                 ; -- Begin function wait_if_release
     .type    wait_if_release,@function
-wait_if_release:                        ; @wait_if_release       ; @ 0x00f6
+wait_if_release:                        ; @wait_if_release       ; @ 0x00f2
 ; %bb.0:                                ; %entry
     ;APP
-    WAIT_IF_RELEASE                                              ; @ 0x00f6 -> [0xf9]
+    WAIT_IF_RELEASE                                              ; @ 0x00f2 -> [0xf9]
     ;NO_APP
-    RET                                                          ; @ 0x00f7 -> [0x55]
-.Lfunc_end10:                                                    ; @ 0x00f8
-    .size    wait_if_release, .Lfunc_end10-wait_if_release       ; @ 0x00f8
+    RET                                                          ; @ 0x00f3 -> [0x55]
+.Lfunc_end9:                                                     ; @ 0x00f4
+    .size    wait_if_release, .Lfunc_end9-wait_if_release        ; @ 0x00f4
                                         ; -- End function
-    .globl    find_player                     ; -- Begin function find_player
-    .type    find_player,@function
-find_player:                            ; @find_player           ; @ 0x00f8
+    .globl    end_script                      ; -- Begin function end_script
+    .type    end_script,@function
+end_script:                             ; @end_script            ; @ 0x00f4
 ; %bb.0:                                ; %entry
-    SUB8 R15, 8                                                  ; @ 0x00f8 -> [0x76,0x2b,0x08]
-    MOV R1, R15                                                  ; @ 0x00fb -> [0x6e,0x05,0x2b]
-    ADD8 R1, 4                                                   ; @ 0x00fe -> [0x73,0x05,0x04]
-    mov *R1_32b, R4                                              ; @ 0x0101 -> [0x6e,0x39,0x20]
-    MOV R2, R15                                                  ; @ 0x0104 -> [0x6e,0x06,0x2b]
-    mov *R2_32b, R5                                              ; @ 0x0107 -> [0x6e,0x3a,0x21]
-    MOV R2, R0                                                   ; @ 0x010a -> [0x6e,0x06,0x04]
-    MOV8 R3, 0                                                   ; @ 0x010d -> [0x6f,0x07,0x00]
-    MOV8 R4, 31                                                  ; @ 0x0110 -> [0x6f,0x20,0x1f]
-    MOV8 R5, 64                                                  ; @ 0x0113 -> [0x6f,0x21,0x40]
-    MOV R1, R3                                                   ; @ 0x0116 -> [0x6e,0x05,0x07]
-.LBB11_1:                               ; %for.body              ; @ 0x0119
-                                        ; =>This Inner Loop Header: Depth=1
-    ADD_R R0, R2, R1                                             ; @ 0x0119 -> [0x82,0x04,0x06,0x05]
-    mov R0, *R0                                                  ; @ 0x011d -> [0x6e,0x04,0x0b]
-    OR8 R0, 4                                                    ; @ 0x0120 -> [0x79,0x04,0x04]
-    XOR_R R0, R0, R4                                             ; @ 0x0123 -> [0x86,0x04,0x04,0x20]
-    JZ R0, .LBB11_4                                              ; @ 0x0127 -> [0x50,0x04,0x3b,0x01]
-; %bb.2:                                ; %for.inc
+    ;APP
+    EXIT                                                         ; @ 0x00f4 -> [0xff]
+    ;NO_APP
+    RET                                                          ; @ 0x00f5 -> [0x55]
+.Lfunc_end10:                                                    ; @ 0x00f6
+    .size    end_script, .Lfunc_end10-end_script                 ; @ 0x00f6
+                                        ; -- End function
+    .globl    print_number                    ; -- Begin function print_number
+    .type    print_number,@function
+print_number:                           ; @print_number          ; @ 0x00f6
+; %bb.0:                                ; %entry
+    SUB8 R15, 32                                                 ; @ 0x00f6 -> [0x76,0x2b,0x20]
+    MOV R1, R15                                                  ; @ 0x00f9 -> [0x6e,0x05,0x2b]
+    ADD8 R1, 28                                                  ; @ 0x00fc -> [0x73,0x05,0x1c]
+    mov *R1_32b, R4                                              ; @ 0x00ff -> [0x6e,0x39,0x20]
+
+    PRINT_REG R4                                                 ; @ 0x0102 -> [0x34,0x20]
+    SLEEP_U16 1000                                               ; @ 0x0104 -> [0x0d,0xe8,0x03]
+    PRINT_REG *R1_32b                                            ; @ 0x0107 -> [0x34,0x39]
+    SLEEP_U16 1000                                               ; @ 0x0109 -> [0x0d,0xe8,0x03]
+
+
+    MOV R2, R15                                                  ; @ 0x010c -> [0x6e,0x06,0x2b]
+    ADD8 R2, 24                                                  ; @ 0x010f -> [0x73,0x06,0x18]
+    mov *R2_32b, R5                                              ; @ 0x0112 -> [0x6e,0x3a,0x21]
+    MOV R3, R15                                                  ; @ 0x0115 -> [0x6e,0x07,0x2b]
+    ADD8 R3, 20                                                  ; @ 0x0118 -> [0x73,0x07,0x14]
+    mov *R3_32b, R6                                              ; @ 0x011b -> [0x6e,0x3b,0x22]
+    MOV R1, R15                                                  ; @ 0x011e -> [0x6e,0x05,0x2b]
+    ADD8 R1, 16                                                  ; @ 0x0121 -> [0x73,0x05,0x10]
+    mov *R1_32b, R7                                              ; @ 0x0124 -> [0x6e,0x39,0x23]
+    MOV R1, R15                                                  ; @ 0x0127 -> [0x6e,0x05,0x2b]
+    ADD8 R1, 12                                                  ; @ 0x012a -> [0x73,0x05,0x0c]
+    mov *R1_32b, R8                                              ; @ 0x012d -> [0x6e,0x39,0x24]
+    MOV8 R4, 12                                                  ; @ 0x0130 -> [0x6f,0x20,0x0c]
+    MOV8 R1, 10                                                  ; @ 0x0133 -> [0x6f,0x05,0x0a]
+    MOV8 R2, 39                                                  ; @ 0x0136 -> [0x6f,0x06,0x27]
+    MOV8 R3, 0                                                   ; @ 0x0139 -> [0x6f,0x07,0x00]
+    MOV R5, R15                                                  ; @ 0x013c -> [0x6e,0x21,0x2b]
+    MOV8 R6, 9                                                   ; @ 0x013f -> [0x6f,0x22,0x09]
+    JMP .LBB11_1                                                 ; @ 0x0142 -> [0x02,0x01,0x5a]
+.LBB11_3:                               ; %while.body            ; @ 0x0145
                                         ;   in Loop: Header=BB11_1 Depth=1
-    INC R1                                                       ; @ 0x012b -> [0x5f,0x05]
-    XOR_R R0, R1, R5                                             ; @ 0x012d -> [0x86,0x04,0x05,0x21]
-    JZ R0, .LBB11_3                                              ; @ 0x0131 -> [0x50,0x04,0x38,0x01]
-    JMP .LBB11_1                                                 ; @ 0x0135 -> [0x02,0x19,0x01]
-.LBB11_3:                                                        ; @ 0x0138
-    MOV R1, R3                                                   ; @ 0x0138 -> [0x6e,0x05,0x07]
-.LBB11_4:                               ; %cleanup               ; @ 0x013b
-    MOV R0, R1                                                   ; @ 0x013b -> [0x6e,0x04,0x05]
-    mov R5, *R1_32b                                              ; @ 0x013e -> [0x6e,0x21,0x39]
-    MOV R2, R15                                                  ; @ 0x0141 -> [0x6e,0x06,0x2b]
-    ADD8 R2, 4                                                   ; @ 0x0144 -> [0x73,0x06,0x04]
-    mov R4, *R2_32b                                              ; @ 0x0147 -> [0x6e,0x20,0x3a]
-    ADD8 R15, 8                                                  ; @ 0x014a -> [0x73,0x2b,0x08]
-    RET                                                          ; @ 0x014d -> [0x55]
-.Lfunc_end11:                                                    ; @ 0x014e
-    .size    find_player, .Lfunc_end11-find_player               ; @ 0x014e
+    DEC R4                                                       ; @ 0x0145 -> [0x5e,0x20]
+    ADD_R R0, R4, R5                                             ; @ 0x0147 -> [0x82,0x04,0x20,0x21]
+    mov *R0, R8                                                  ; @ 0x014b -> [0x6e,0x0b,0x24]
+    DIV_R R0, R7, R1 ;udiv                                       ; @ 0x014e -> [0x88,0x04,0x23,0x05]
+    JG R7, R6, .LBB11_1                                          ; @ 0x0152 -> [0x46,0x23,0x22,0x01,0x5a]
+    JMP .LBB11_4                                                 ; @ 0x0157 -> [0x02,0x01,0x75]
+.LBB11_1:                               ; %while.body            ; @ 0x015a
+                                        ; =>This Inner Loop Header: Depth=1
+    MOV R7, R0                                                   ; @ 0x015a -> [0x6e,0x23,0x04]
+    MOD_R R0, R7, R1 ;srem                                       ; @ 0x015d -> [0x89,0x04,0x23,0x05]
+    MOV R8, R2                                                   ; @ 0x0161 -> [0x6e,0x24,0x06]
+    CJNE R0, R3, .LBB11_2                                        ; @ 0x0164 -> [0x53,0x04,0x07,0x01,0x6c]
+    JMP .LBB11_3                                                 ; @ 0x0169 -> [0x02,0x01,0x45]
+.LBB11_2:                               ;   in Loop: Header=BB11_1 Depth=1  ; @ 0x016c
+    ADD8 R0, 29                                                  ; @ 0x016c -> [0x73,0x04,0x1d]
+    MOV R8, R0                                                   ; @ 0x016f -> [0x6e,0x24,0x04]
+    JMP .LBB11_3                                                 ; @ 0x0172 -> [0x02,0x01,0x45]
+.LBB11_4:                                                        ; @ 0x0175
+    MOV8 R6, 12                                                  ; @ 0x0175 -> [0x6f,0x22,0x0c]
+.LBB11_5:                               ; %for.body              ; @ 0x0178
+                                        ; =>This Inner Loop Header: Depth=1
+    ADD_R R0, R5, R4                                             ; @ 0x0178 -> [0x82,0x04,0x21,0x20]
+    mov R0, *R0                                                  ; @ 0x017c -> [0x6e,0x04,0x0b]
+    CALL press_and_release_gk                                    ; @ 0x017f -> [0x54,0x00,0x0f]
+    INC R4                                                       ; @ 0x0182 -> [0x5f,0x20]
+    XOR_R R0, R4, R6                                             ; @ 0x0184 -> [0x86,0x04,0x20,0x22]
+    JZ R0, .LBB11_6                                              ; @ 0x0188 -> [0x50,0x04,0x01,0x8f]
+    JMP .LBB11_5                                                 ; @ 0x018c -> [0x02,0x01,0x78]
+.LBB11_6:                               ; %for.cond.cleanup      ; @ 0x018f
+    MOV R0, R15                                                  ; @ 0x018f -> [0x6e,0x04,0x2b]
+    ADD8 R0, 12                                                  ; @ 0x0192 -> [0x73,0x04,0x0c]
+    mov R8, *R0_32b                                              ; @ 0x0195 -> [0x6e,0x24,0x38]
+    MOV R1, R15                                                  ; @ 0x0198 -> [0x6e,0x05,0x2b]
+    ADD8 R1, 16                                                  ; @ 0x019b -> [0x73,0x05,0x10]
+    mov R7, *R1_32b                                              ; @ 0x019e -> [0x6e,0x23,0x39]
+    MOV R2, R15                                                  ; @ 0x01a1 -> [0x6e,0x06,0x2b]
+    ADD8 R2, 20                                                  ; @ 0x01a4 -> [0x73,0x06,0x14]
+    mov R6, *R2_32b                                              ; @ 0x01a7 -> [0x6e,0x22,0x3a]
+    MOV R3, R15                                                  ; @ 0x01aa -> [0x6e,0x07,0x2b]
+    ADD8 R3, 24                                                  ; @ 0x01ad -> [0x73,0x07,0x18]
+    mov R5, *R3_32b                                              ; @ 0x01b0 -> [0x6e,0x21,0x3b]
+    MOV R1, R15                                                  ; @ 0x01b3 -> [0x6e,0x05,0x2b]
+    ADD8 R1, 28                                                  ; @ 0x01b6 -> [0x73,0x05,0x1c]
+    mov R4, *R1_32b                                              ; @ 0x01b9 -> [0x6e,0x20,0x39]
+    PRINT_REG R4                                                 ; @ 0x01bc -> [0x34,0x20]
+    SLEEP_U16 1000                                               ; @ 0x01be -> [0x0d,0xe8,0x03]
+    PRINT_REG *R1_32b                                            ; @ 0x01c1 -> [0x34,0x39]
+    SLEEP_U16 1000                                               ; @ 0x01c3 -> [0x0d,0xe8,0x03]
+    ADD8 R15, 32                                                 ; @ 0x01c6 -> [0x73,0x2b,0x20]
+    RET                                                          ; @ 0x01c9 -> [0x55]
+.Lfunc_end11:                                                    ; @ 0x01ca
+    .size    print_number, .Lfunc_end11-print_number             ; @ 0x01ca
                                         ; -- End function
     .globl    init                            ; -- Begin function init
     .type    init,@function
-init:                                   ; @init                  ; @ 0x014e
+init:                                   ; @init                  ; @ 0x01ca
 ; %bb.0:                                ; %entry
-    SUB8 R15, 8                                                  ; @ 0x014e -> [0x76,0x2b,0x08]
-    MOV R0, R15                                                  ; @ 0x0151 -> [0x6e,0x04,0x2b]
-    ADD8 R0, 4                                                   ; @ 0x0154 -> [0x73,0x04,0x04]
-    mov *R0_32b, R4                                              ; @ 0x0157 -> [0x6e,0x38,0x20]
-    MOV R1, R15                                                  ; @ 0x015a -> [0x6e,0x05,0x2b]
-    mov *R1_32b, R5                                              ; @ 0x015d -> [0x6e,0x39,0x21]
-    MOV8 R3, 64                                                  ; @ 0x0160 -> [0x6f,0x07,0x40]
-    MOV R2, R3                                                   ; @ 0x0163 -> [0x6e,0x06,0x07]
-    ;APP
-    MALLOC R2                                                    ; @ 0x0166 -> [0xf0,0x06]
-    ;NO_APP
-    MOV8 R4, 0                                                   ; @ 0x0168 -> [0x6f,0x20,0x00]
-.LBB12_1:                               ; %for.body              ; @ 0x016b
+    SUB8 R15, 8                                                  ; @ 0x01ca -> [0x76,0x2b,0x08]
+    MOV R0, R15                                                  ; @ 0x01cd -> [0x6e,0x04,0x2b]
+    ADD8 R0, 4                                                   ; @ 0x01d0 -> [0x73,0x04,0x04]
+    mov *R0_32b, R4                                              ; @ 0x01d3 -> [0x6e,0x38,0x20]
+    MOV R1, R15                                                  ; @ 0x01d6 -> [0x6e,0x05,0x2b]
+    mov *R1_32b, R5                                              ; @ 0x01d9 -> [0x6e,0x39,0x21]
+    MOV8 R4, 64                                                  ; @ 0x01dc -> [0x6f,0x20,0x40]
+    MOV R0, R4                                                   ; @ 0x01df -> [0x6e,0x04,0x20]
+    CALL sayo_malloc                                             ; @ 0x01e2 -> [0x54,0x00,0x1a]
+    MOV R1, R0                                                   ; @ 0x01e5 -> [0x6e,0x05,0x04]
+    MOV8 R3, 0                                                   ; @ 0x01e8 -> [0x6f,0x07,0x00]
+.LBB12_1:                               ; %for.body              ; @ 0x01eb
                                         ; =>This Inner Loop Header: Depth=1
-    ADD_R R1, R2, R4                                             ; @ 0x016b -> [0x82,0x05,0x06,0x20]
-    MOV32 R0, level                                              ; @ 0x016f -> [0x71,0x04,0xa3,0x04,0x00,0x00]
-    ADD R0, SCRIPT_ADDR                                          ; @ 0x0175 -> [0x72,0x04,0x17]
-    ADD_R R0, R4, R0                                             ; @ 0x0178 -> [0x82,0x04,0x20,0x04]
-    mov R5, *R0                                                  ; @ 0x017c -> [0x6e,0x21,0x0b]
-    MOV R0, R1                                                   ; @ 0x017f -> [0x6e,0x04,0x05]
-    mov *R0, R5                                                  ; @ 0x0182 -> [0x6e,0x0b,0x21]
-    INC R4                                                       ; @ 0x0185 -> [0x5f,0x20]
-    XOR_R R0, R4, R3                                             ; @ 0x0187 -> [0x86,0x04,0x20,0x07]
-    JZ R0, .LBB12_2                                              ; @ 0x018b -> [0x50,0x04,0x92,0x01]
-    JMP .LBB12_1                                                 ; @ 0x018f -> [0x02,0x6b,0x01]
-.LBB12_2:                               ; %for.cond.cleanup      ; @ 0x0192
-    ;APP
-    mov GL_0, R2                                                 ; @ 0x0192 -> [0x6e,0x80,0x06]
-    ;NO_APP
-    ;APP
-    WAIT_IF_RELEASE                                              ; @ 0x0195 -> [0xf9]
-    ;NO_APP
-    ;APP
-    WAIT_IF_PRESS                                                ; @ 0x0196 -> [0xfa]
-    ;NO_APP
-    ;APP
-    WAIT_IF_RELEASE                                              ; @ 0x0197 -> [0xf9]
-    ;NO_APP
-    mov R5, *R0_32b                                              ; @ 0x0198 -> [0x6e,0x21,0x38]
-    MOV R1, R15                                                  ; @ 0x019b -> [0x6e,0x05,0x2b]
-    ADD8 R1, 4                                                   ; @ 0x019e -> [0x73,0x05,0x04]
-    mov R4, *R1_32b                                              ; @ 0x01a1 -> [0x6e,0x20,0x39]
-    ADD8 R15, 8                                                  ; @ 0x01a4 -> [0x73,0x2b,0x08]
-    RET                                                          ; @ 0x01a7 -> [0x55]
-.Lfunc_end12:                                                    ; @ 0x01a8
-    .size    init, .Lfunc_end12-init                             ; @ 0x01a8
-                                        ; -- End function
-    .globl    print_map                       ; -- Begin function print_map
-    .type    print_map,@function
-print_map:                              ; @print_map             ; @ 0x01a8
-; %bb.0:                                ; %entry
-    SUB8 R15, 8                                                  ; @ 0x01a8 -> [0x76,0x2b,0x08]
-    MOV R1, R15                                                  ; @ 0x01ab -> [0x6e,0x05,0x2b]
-    ADD8 R1, 4                                                   ; @ 0x01ae -> [0x73,0x05,0x04]
-    mov *R1_32b, R4                                              ; @ 0x01b1 -> [0x6e,0x39,0x20]
-    MOV R2, R15                                                  ; @ 0x01b4 -> [0x6e,0x06,0x2b]
-    mov *R2_32b, R5                                              ; @ 0x01b7 -> [0x6e,0x3a,0x21]
-    MOV R1, R0                                                   ; @ 0x01ba -> [0x6e,0x05,0x04]
-    MOV8 R2, 0                                                   ; @ 0x01bd -> [0x6f,0x06,0x00]
-    ;APP
-    PRESS_GK 224                                                 ; @ 0x01c0 -> [0x11,0xe0]
-    ;NO_APP
-    ;APP
-    SLEEP 10                                                     ; @ 0x01c2 -> [0x06,0x0a]
-    ;NO_APP
-    ;APP
-    PRESS_GK 4                                                   ; @ 0x01c4 -> [0x11,0x04]
-    ;NO_APP
-    ;APP
-    SLEEP 10                                                     ; @ 0x01c6 -> [0x06,0x0a]
-    ;NO_APP
-    ;APP
-    RELEASE_GK 4                                                 ; @ 0x01c8 -> [0x19,0x04]
-    ;NO_APP
-    ;APP
-    SLEEP 10                                                     ; @ 0x01ca -> [0x06,0x0a]
-    ;NO_APP
-    ;APP
-    RELEASE_GK 224                                               ; @ 0x01cc -> [0x19,0xe0]
-    ;NO_APP
-    ;APP
-    SLEEP 10                                                     ; @ 0x01ce -> [0x06,0x0a]
-    ;NO_APP
-    ;APP
-    PRESS_GK 42                                                  ; @ 0x01d0 -> [0x11,0x2a]
-    ;NO_APP
-    ;APP
-    SLEEP 10                                                     ; @ 0x01d2 -> [0x06,0x0a]
-    ;NO_APP
-    ;APP
-    RELEASE_GK 42                                                ; @ 0x01d4 -> [0x19,0x2a]
-    ;NO_APP
-    ;APP
-    SLEEP 10                                                     ; @ 0x01d6 -> [0x06,0x0a]
-    ;NO_APP
-    MOV8 R3, 8                                                   ; @ 0x01d8 -> [0x6f,0x07,0x08]
-    MOV R4, R2                                                   ; @ 0x01db -> [0x6e,0x20,0x06]
-.LBB13_1:                               ; %for.cond1.preheader   ; @ 0x01de
-                                        ; =>This Loop Header: Depth=1
-                                        ;     Child Loop BB13_2 Depth 2
-    MOV R5, R2                                                   ; @ 0x01de -> [0x6e,0x21,0x06]
-.LBB13_2:                               ; %for.body4             ; @ 0x01e1
-                                        ;   Parent Loop BB13_1 Depth=1
-                                        ; =>  This Inner Loop Header: Depth=2
-    ADD_R R0, R1, R5                                             ; @ 0x01e1 -> [0x82,0x04,0x05,0x21]
-    mov R0, *R0                                                  ; @ 0x01e5 -> [0x6e,0x04,0x0b]
-    ;APP
-    PRESS_GK_VAL R0                                              ; @ 0x01e8 -> [0x15,0x04]
-    ;NO_APP
-    ;APP
-    SLEEP 10                                                     ; @ 0x01ea -> [0x06,0x0a]
-    ;NO_APP
-    ;APP
-    RELEASE_GK_VAL R0                                            ; @ 0x01ec -> [0x1d,0x04]
-    ;NO_APP
-    ;APP
-    SLEEP 10                                                     ; @ 0x01ee -> [0x06,0x0a]
-    ;NO_APP
-    INC R5                                                       ; @ 0x01f0 -> [0x5f,0x21]
-    XOR_R R0, R5, R3                                             ; @ 0x01f2 -> [0x86,0x04,0x21,0x07]
-    JZ R0, .LBB13_3                                              ; @ 0x01f6 -> [0x50,0x04,0xfd,0x01]
-    JMP .LBB13_2                                                 ; @ 0x01fa -> [0x02,0xe1,0x01]
-.LBB13_3:                               ; %for.cond.cleanup3     ; @ 0x01fd
-                                        ;   in Loop: Header=BB13_1 Depth=1
-    ADD8 R1, 8                                                   ; @ 0x01fd -> [0x73,0x05,0x08]
-    INC R4                                                       ; @ 0x0200 -> [0x5f,0x20]
-    XOR_R R0, R4, R3                                             ; @ 0x0202 -> [0x86,0x04,0x20,0x07]
-    JZ R0, .LBB13_4                                              ; @ 0x0206 -> [0x50,0x04,0x0d,0x02]
-    JMP .LBB13_1                                                 ; @ 0x020a -> [0x02,0xde,0x01]
-.LBB13_4:                               ; %for.cond.cleanup      ; @ 0x020d
-    mov R5, *R0_32b                                              ; @ 0x020d -> [0x6e,0x21,0x38]
-    MOV R1, R15                                                  ; @ 0x0210 -> [0x6e,0x05,0x2b]
-    ADD8 R1, 4                                                   ; @ 0x0213 -> [0x73,0x05,0x04]
-    mov R4, *R1_32b                                              ; @ 0x0216 -> [0x6e,0x20,0x39]
-    ADD8 R15, 8                                                  ; @ 0x0219 -> [0x73,0x2b,0x08]
-    RET                                                          ; @ 0x021c -> [0x55]
-.Lfunc_end13:                                                    ; @ 0x021d
-    .size    print_map, .Lfunc_end13-print_map                   ; @ 0x021d
-                                        ; -- End function
-    .globl    try_move                        ; -- Begin function try_move
-    .type    try_move,@function
-try_move:                               ; @try_move              ; @ 0x021d
-; %bb.0:                                ; %entry
-    SUB8 R15, 20                                                 ; @ 0x021d -> [0x76,0x2b,0x14]
-    MOV R2, R15                                                  ; @ 0x0220 -> [0x6e,0x06,0x2b]
-    ADD8 R2, 16                                                  ; @ 0x0223 -> [0x73,0x06,0x10]
-    mov *R2_32b, R4                                              ; @ 0x0226 -> [0x6e,0x3a,0x20]
-    MOV R3, R15                                                  ; @ 0x0229 -> [0x6e,0x07,0x2b]
-    ADD8 R3, 12                                                  ; @ 0x022c -> [0x73,0x07,0x0c]
-    mov *R3_32b, R5                                              ; @ 0x022f -> [0x6e,0x3b,0x21]
-    MOV R1, R15                                                  ; @ 0x0232 -> [0x6e,0x05,0x2b]
-    ADD8 R1, 8                                                   ; @ 0x0235 -> [0x73,0x05,0x08]
-    mov *R1_32b, R6                                              ; @ 0x0238 -> [0x6e,0x39,0x22]
-    MOV R1, R15                                                  ; @ 0x023b -> [0x6e,0x05,0x2b]
-    ADD8 R1, 4                                                   ; @ 0x023e -> [0x73,0x05,0x04]
-    mov *R1_32b, R7                                              ; @ 0x0241 -> [0x6e,0x39,0x23]
-    MOV R1, R15                                                  ; @ 0x0244 -> [0x6e,0x05,0x2b]
-    mov *R1_32b, R8                                              ; @ 0x0247 -> [0x6e,0x39,0x24]
-    MOV R2, R0                                                   ; @ 0x024a -> [0x6e,0x06,0x04]
-    MOV8 R6, 0                                                   ; @ 0x024d -> [0x6f,0x22,0x00]
-    ;APP
-    mov R3, GL_0                                                 ; @ 0x0250 -> [0x6e,0x07,0x80]
-    ;NO_APP
-    MOV8 R4, 31                                                  ; @ 0x0253 -> [0x6f,0x20,0x1f]
-    MOV8 R7, 64                                                  ; @ 0x0256 -> [0x6f,0x23,0x40]
-    MOV R5, R6                                                   ; @ 0x0259 -> [0x6e,0x21,0x22]
-.LBB14_1:                               ; %for.body.i            ; @ 0x025c
-                                        ; =>This Inner Loop Header: Depth=1
-    ADD_R R0, R3, R5                                             ; @ 0x025c -> [0x82,0x04,0x07,0x21]
-    mov R0, *R0                                                  ; @ 0x0260 -> [0x6e,0x04,0x0b]
-    OR8 R0, 4                                                    ; @ 0x0263 -> [0x79,0x04,0x04]
-    XOR_R R0, R0, R4                                             ; @ 0x0266 -> [0x86,0x04,0x04,0x20]
-    JZ R0, .LBB14_4                                              ; @ 0x026a -> [0x50,0x04,0x7e,0x02]
-; %bb.2:                                ; %for.inc.i
-                                        ;   in Loop: Header=BB14_1 Depth=1
-    INC R5                                                       ; @ 0x026e -> [0x5f,0x21]
-    XOR_R R0, R5, R7                                             ; @ 0x0270 -> [0x86,0x04,0x21,0x23]
-    JZ R0, .LBB14_3                                              ; @ 0x0274 -> [0x50,0x04,0x7b,0x02]
-    JMP .LBB14_1                                                 ; @ 0x0278 -> [0x02,0x5c,0x02]
-.LBB14_3:                                                        ; @ 0x027b
-    MOV R5, R6                                                   ; @ 0x027b -> [0x6e,0x21,0x22]
-.LBB14_4:                               ; %find_player.exit      ; @ 0x027e
-    MOV8SX R0, -1                                                ; @ 0x027e -> [0x8c,0x04,0xff]
-    JG R2, R0, .LBB14_6                                          ; @ 0x0281 -> [0x46,0x06,0x04,0x8e,0x02]
-; %bb.5:                                ; %find_player.exit
-    MOV8 R6, 8                                                   ; @ 0x0286 -> [0x6f,0x22,0x08]
-    JB R5, R6, .LBB14_26                                         ; @ 0x0289 -> [0x45,0x21,0x22,0xa4,0x03]
-.LBB14_6:                               ; %lor.lhs.false         ; @ 0x028e
-    MOV8 R6, 1                                                   ; @ 0x028e -> [0x6f,0x22,0x01]
-    JL R2, R6, .LBB14_8                                          ; @ 0x0291 -> [0x47,0x06,0x22,0xaa,0x02]
-; %bb.7:                                ; %lor.lhs.false
-    MOV R7, R5                                                   ; @ 0x0296 -> [0x6e,0x23,0x21]
-    AND32 R7, 2147483640                                         ; @ 0x0299 -> [0x7f,0x23,0xf8,0xff,0xff,0x7f]
-    MOV8 R8, 56                                                  ; @ 0x029f -> [0x6f,0x24,0x38]
-    XOR_R R7, R7, R8                                             ; @ 0x02a2 -> [0x86,0x23,0x23,0x24]
-    JZ R7, .LBB14_26                                             ; @ 0x02a6 -> [0x50,0x23,0xa4,0x03]
-.LBB14_8:                               ; %lor.lhs.false10       ; @ 0x02aa
-    MOV R7, R5                                                   ; @ 0x02aa -> [0x6e,0x23,0x21]
-    AND8 R7, 7                                                   ; @ 0x02ad -> [0x57,0x23,0x07]
-    JG R1, R0, .LBB14_10                                         ; @ 0x02b0 -> [0x46,0x05,0x04,0xb9,0x02]
-; %bb.9:                                ; %lor.lhs.false10
-    JZ R7, .LBB14_26                                             ; @ 0x02b5 -> [0x50,0x23,0xa4,0x03]
-.LBB14_10:                              ; %lor.lhs.false17       ; @ 0x02b9
-    JL R1, R6, .LBB14_12                                         ; @ 0x02b9 -> [0x47,0x05,0x22,0xc9,0x02]
-; %bb.11:                               ; %lor.lhs.false17
-    MOV8 R0, 7                                                   ; @ 0x02be -> [0x6f,0x04,0x07]
-    XOR_R R0, R7, R0                                             ; @ 0x02c1 -> [0x86,0x04,0x23,0x04]
-    JZ R0, .LBB14_26                                             ; @ 0x02c5 -> [0x50,0x04,0xa4,0x03]
-.LBB14_12:                              ; %if.end                ; @ 0x02c9
-    SHL8 R2, 3                                                   ; @ 0x02c9 -> [0x65,0x06,0x03]
-    ADD_R R6, R2, R1                                             ; @ 0x02cc -> [0x82,0x22,0x06,0x05]
-    ADD_R R7, R6, R5                                             ; @ 0x02d0 -> [0x82,0x23,0x22,0x21]
-    ADD_R R1, R3, R7                                             ; @ 0x02d4 -> [0x82,0x05,0x07,0x23]
-    MOV R0, R1                                                   ; @ 0x02d8 -> [0x6e,0x04,0x05]
-    mov R0, *R0                                                  ; @ 0x02db -> [0x6e,0x04,0x0b]
-    MOV8 R5, 33                                                  ; @ 0x02de -> [0x6f,0x21,0x21]
-    XOR_R R8, R0, R5                                             ; @ 0x02e1 -> [0x86,0x24,0x04,0x21]
-    MOV8 R2, 27                                                  ; @ 0x02e5 -> [0x6f,0x06,0x1b]
-    JZ R8, .LBB14_15                                             ; @ 0x02e8 -> [0x50,0x24,0xff,0x02]
-; %bb.13:                               ; %if.end
-    MOV8 R8, 32                                                  ; @ 0x02ec -> [0x6f,0x24,0x20]
-    XOR_R R8, R0, R8                                             ; @ 0x02ef -> [0x86,0x24,0x04,0x24]
-    JZ R8, .LBB14_26                                             ; @ 0x02f3 -> [0x50,0x24,0xa4,0x03]
-; %bb.14:                               ; %if.end
-    XOR_R R8, R0, R2                                             ; @ 0x02f7 -> [0x86,0x24,0x04,0x06]
-    JNZ R8, .LBB14_20                                            ; @ 0x02fb -> [0x51,0x24,0x3d,0x03]
-.LBB14_15:                              ; %if.then41             ; @ 0x02ff
-    ADD_R R0, R6, R7                                             ; @ 0x02ff -> [0x82,0x04,0x22,0x23]
-    ADD_R R0, R3, R0                                             ; @ 0x0303 -> [0x82,0x04,0x07,0x04]
-    mov R6, *R0                                                  ; @ 0x0307 -> [0x6e,0x22,0x0b]
-    MOV R7, R6                                                   ; @ 0x030a -> [0x6e,0x23,0x22]
-    SUB8 R7, 32                                                  ; @ 0x030d -> [0x76,0x23,0x20]
-    MOV8 R8, 2                                                   ; @ 0x0310 -> [0x6f,0x24,0x02]
-    JB R7, R8, .LBB14_26                                         ; @ 0x0313 -> [0x45,0x23,0x24,0xa4,0x03]
-; %bb.16:                               ; %if.then41
-    MOV8 R7, 27                                                  ; @ 0x0318 -> [0x6f,0x23,0x1b]
-    XOR_R R7, R6, R7                                             ; @ 0x031b -> [0x86,0x23,0x22,0x23]
-    JZ R7, .LBB14_26                                             ; @ 0x031f -> [0x50,0x23,0xa4,0x03]
-; %bb.17:                               ; %if.then41
-    MOV8 R7, 55                                                  ; @ 0x0323 -> [0x6f,0x23,0x37]
-    XOR_R R6, R6, R7                                             ; @ 0x0326 -> [0x86,0x22,0x22,0x23]
-    JZ R6, .LBB14_18                                             ; @ 0x032a -> [0x50,0x22,0x31,0x03]
-    JMP .LBB14_19                                                ; @ 0x032e -> [0x02,0x34,0x03]
-.LBB14_18:                                                       ; @ 0x0331
-    MOV8 R5, 27                                                  ; @ 0x0331 -> [0x6f,0x21,0x1b]
-.LBB14_19:                              ; %if.end70              ; @ 0x0334
-    mov *R0, R5                                                  ; @ 0x0334 -> [0x6e,0x0b,0x21]
-    MOV R0, R1                                                   ; @ 0x0337 -> [0x6e,0x04,0x05]
-    mov R0, *R0                                                  ; @ 0x033a -> [0x6e,0x04,0x0b]
-.LBB14_20:                              ; %if.end71              ; @ 0x033d
-    AND8 R0, 255                                                 ; @ 0x033d -> [0x57,0x04,0xff]
-    MOV8 R5, 55                                                  ; @ 0x0340 -> [0x6f,0x21,0x37]
-    CJNE R0, R5, .LBB14_21                                       ; @ 0x0343 -> [0x53,0x04,0x21,0x4b,0x03]
-    JMP .LBB14_22                                                ; @ 0x0348 -> [0x02,0x4e,0x03]
-.LBB14_21:                                                       ; @ 0x034b
-    MOV R2, R4                                                   ; @ 0x034b -> [0x6e,0x06,0x20]
-.LBB14_22:                              ; %if.end71              ; @ 0x034e
-    MOV R0, R1                                                   ; @ 0x034e -> [0x6e,0x04,0x05]
-    mov *R0, R2                                                  ; @ 0x0351 -> [0x6e,0x0b,0x06]
-    MOV8 R1, 0                                                   ; @ 0x0354 -> [0x6f,0x05,0x00]
-    ;APP
-    PRESS_GK 224                                                 ; @ 0x0357 -> [0x11,0xe0]
-    ;NO_APP
-    ;APP
-    SLEEP 10                                                     ; @ 0x0359 -> [0x06,0x0a]
-    ;NO_APP
-    ;APP
-    PRESS_GK 4                                                   ; @ 0x035b -> [0x11,0x04]
-    ;NO_APP
-    ;APP
-    SLEEP 10                                                     ; @ 0x035d -> [0x06,0x0a]
-    ;NO_APP
-    ;APP
-    RELEASE_GK 4                                                 ; @ 0x035f -> [0x19,0x04]
-    ;NO_APP
-    ;APP
-    SLEEP 10                                                     ; @ 0x0361 -> [0x06,0x0a]
-    ;NO_APP
-    ;APP
-    RELEASE_GK 224                                               ; @ 0x0363 -> [0x19,0xe0]
-    ;NO_APP
-    ;APP
-    SLEEP 10                                                     ; @ 0x0365 -> [0x06,0x0a]
-    ;NO_APP
-    ;APP
-    PRESS_GK 42                                                  ; @ 0x0367 -> [0x11,0x2a]
-    ;NO_APP
-    ;APP
-    SLEEP 10                                                     ; @ 0x0369 -> [0x06,0x0a]
-    ;NO_APP
-    ;APP
-    RELEASE_GK 42                                                ; @ 0x036b -> [0x19,0x2a]
-    ;NO_APP
-    ;APP
-    SLEEP 10                                                     ; @ 0x036d -> [0x06,0x0a]
-    ;NO_APP
-    MOV8 R2, 8                                                   ; @ 0x036f -> [0x6f,0x06,0x08]
-    MOV R4, R1                                                   ; @ 0x0372 -> [0x6e,0x20,0x05]
-.LBB14_23:                              ; %for.cond1.preheader.i  ; @ 0x0375
-                                        ; =>This Loop Header: Depth=1
-                                        ;     Child Loop BB14_24 Depth 2
-    MOV R5, R1                                                   ; @ 0x0375 -> [0x6e,0x21,0x05]
-.LBB14_24:                              ; %for.body4.i           ; @ 0x0378
-                                        ;   Parent Loop BB14_23 Depth=1
-                                        ; =>  This Inner Loop Header: Depth=2
-    ADD_R R0, R3, R5                                             ; @ 0x0378 -> [0x82,0x04,0x07,0x21]
-    mov R0, *R0                                                  ; @ 0x037c -> [0x6e,0x04,0x0b]
-    ;APP
-    PRESS_GK_VAL R0                                              ; @ 0x037f -> [0x15,0x04]
-    ;NO_APP
-    ;APP
-    SLEEP 10                                                     ; @ 0x0381 -> [0x06,0x0a]
-    ;NO_APP
-    ;APP
-    RELEASE_GK_VAL R0                                            ; @ 0x0383 -> [0x1d,0x04]
-    ;NO_APP
-    ;APP
-    SLEEP 10                                                     ; @ 0x0385 -> [0x06,0x0a]
-    ;NO_APP
-    INC R5                                                       ; @ 0x0387 -> [0x5f,0x21]
-    XOR_R R0, R5, R2                                             ; @ 0x0389 -> [0x86,0x04,0x21,0x06]
-    JZ R0, .LBB14_25                                             ; @ 0x038d -> [0x50,0x04,0x94,0x03]
-    JMP .LBB14_24                                                ; @ 0x0391 -> [0x02,0x78,0x03]
-.LBB14_25:                              ; %for.cond.cleanup3.i   ; @ 0x0394
-                                        ;   in Loop: Header=BB14_23 Depth=1
-    ADD8 R3, 8                                                   ; @ 0x0394 -> [0x73,0x07,0x08]
-    INC R4                                                       ; @ 0x0397 -> [0x5f,0x20]
-    XOR_R R0, R4, R2                                             ; @ 0x0399 -> [0x86,0x04,0x20,0x06]
-    JZ R0, .LBB14_26                                             ; @ 0x039d -> [0x50,0x04,0xa4,0x03]
-    JMP .LBB14_23                                                ; @ 0x03a1 -> [0x02,0x75,0x03]
-.LBB14_26:                              ; %cleanup82             ; @ 0x03a4
-    mov R8, *R0_32b                                              ; @ 0x03a4 -> [0x6e,0x24,0x38]
-    MOV R1, R15                                                  ; @ 0x03a7 -> [0x6e,0x05,0x2b]
-    ADD8 R1, 4                                                   ; @ 0x03aa -> [0x73,0x05,0x04]
-    mov R7, *R1_32b                                              ; @ 0x03ad -> [0x6e,0x23,0x39]
-    MOV R2, R15                                                  ; @ 0x03b0 -> [0x6e,0x06,0x2b]
-    ADD8 R2, 8                                                   ; @ 0x03b3 -> [0x73,0x06,0x08]
-    mov R6, *R2_32b                                              ; @ 0x03b6 -> [0x6e,0x22,0x3a]
-    MOV R3, R15                                                  ; @ 0x03b9 -> [0x6e,0x07,0x2b]
-    ADD8 R3, 12                                                  ; @ 0x03bc -> [0x73,0x07,0x0c]
-    mov R5, *R3_32b                                              ; @ 0x03bf -> [0x6e,0x21,0x3b]
-    MOV R1, R15                                                  ; @ 0x03c2 -> [0x6e,0x05,0x2b]
-    ADD8 R1, 16                                                  ; @ 0x03c5 -> [0x73,0x05,0x10]
-    mov R4, *R1_32b                                              ; @ 0x03c8 -> [0x6e,0x20,0x39]
-    ADD8 R15, 20                                                 ; @ 0x03cb -> [0x73,0x2b,0x14]
-    RET                                                          ; @ 0x03ce -> [0x55]
-.Lfunc_end14:                                                    ; @ 0x03cf
-    .size    try_move, .Lfunc_end14-try_move                     ; @ 0x03cf
+    ADD_R R2, R1, R3                                             ; @ 0x01eb -> [0x82,0x06,0x05,0x07]
+    MOV32 R0, level                                              ; @ 0x01ef -> [0x71,0x04,0x93,0x02,0x00,0x00]
+    ADD R0, SCRIPT_ADDR                                          ; @ 0x01f5 -> [0x72,0x04,0x17]
+    ADD_R R0, R3, R0                                             ; @ 0x01f8 -> [0x82,0x04,0x07,0x04]
+    mov R5, *R0                                                  ; @ 0x01fc -> [0x6e,0x21,0x0b]
+    MOV R0, R2                                                   ; @ 0x01ff -> [0x6e,0x04,0x06]
+    mov *R0, R5                                                  ; @ 0x0202 -> [0x6e,0x0b,0x21]
+    INC R3                                                       ; @ 0x0205 -> [0x5f,0x07]
+    XOR_R R0, R3, R4                                             ; @ 0x0207 -> [0x86,0x04,0x07,0x20]
+    JZ R0, .LBB12_2                                              ; @ 0x020b -> [0x50,0x04,0x02,0x12]
+    JMP .LBB12_1                                                 ; @ 0x020f -> [0x02,0x01,0xeb]
+.LBB12_2:                               ; %for.cond.cleanup      ; @ 0x0212
+    MOV8 R0, 0                                                   ; @ 0x0212 -> [0x6f,0x04,0x00]
+    CALL print_number                                            ; @ 0x0215 -> [0x54,0x00,0xf6]
+    MOV8 R4, 40                                                  ; @ 0x0218 -> [0x6f,0x20,0x28]
+    MOV R0, R4                                                   ; @ 0x021b -> [0x6e,0x04,0x20]
+    CALL press_and_release_gk                                    ; @ 0x021e -> [0x54,0x00,0x0f]
+    MOV8 R0, 1                                                   ; @ 0x0221 -> [0x6f,0x04,0x01]
+    CALL print_number                                            ; @ 0x0224 -> [0x54,0x00,0xf6]
+    MOV R0, R4                                                   ; @ 0x0227 -> [0x6e,0x04,0x20]
+    CALL press_and_release_gk                                    ; @ 0x022a -> [0x54,0x00,0x0f]
+    MOV8 R0, 2                                                   ; @ 0x022d -> [0x6f,0x04,0x02]
+    CALL print_number                                            ; @ 0x0230 -> [0x54,0x00,0xf6]
+    MOV R0, R4                                                   ; @ 0x0233 -> [0x6e,0x04,0x20]
+    CALL press_and_release_gk                                    ; @ 0x0236 -> [0x54,0x00,0x0f]
+    MOV8 R0, 3                                                   ; @ 0x0239 -> [0x6f,0x04,0x03]
+    CALL print_number                                            ; @ 0x023c -> [0x54,0x00,0xf6]
+    MOV R0, R4                                                   ; @ 0x023f -> [0x6e,0x04,0x20]
+    CALL press_and_release_gk                                    ; @ 0x0242 -> [0x54,0x00,0x0f]
+    MOV8 R0, 4                                                   ; @ 0x0245 -> [0x6f,0x04,0x04]
+    CALL print_number                                            ; @ 0x0248 -> [0x54,0x00,0xf6]
+    MOV R0, R4                                                   ; @ 0x024b -> [0x6e,0x04,0x20]
+    CALL press_and_release_gk                                    ; @ 0x024e -> [0x54,0x00,0x0f]
+    MOV8 R0, 5                                                   ; @ 0x0251 -> [0x6f,0x04,0x05]
+    CALL print_number                                            ; @ 0x0254 -> [0x54,0x00,0xf6]
+    MOV R0, R4                                                   ; @ 0x0257 -> [0x6e,0x04,0x20]
+    CALL press_and_release_gk                                    ; @ 0x025a -> [0x54,0x00,0x0f]
+    mov R5, *R0_32b                                              ; @ 0x025d -> [0x6e,0x21,0x38]
+    MOV R1, R15                                                  ; @ 0x0260 -> [0x6e,0x05,0x2b]
+    ADD8 R1, 4                                                   ; @ 0x0263 -> [0x73,0x05,0x04]
+    mov R4, *R1_32b                                              ; @ 0x0266 -> [0x6e,0x20,0x39]
+    ADD8 R15, 8                                                  ; @ 0x0269 -> [0x73,0x2b,0x08]
+    RET                                                          ; @ 0x026c -> [0x55]
+.Lfunc_end12:                                                    ; @ 0x026d
+    .size    init, .Lfunc_end12-init                             ; @ 0x026d
                                         ; -- End function
     .globl    main                            ; -- Begin function main
     .type    main,@function
-main:                                   ; @main                  ; @ 0x03cf
+main:                                   ; @main                  ; @ 0x026d
 ; %bb.0:                                ; %entry
-    MOV32 R15, 2048                                              ; @ 0x03cf -> [0x71,0x2b,0x00,0x08,0x00,0x00]
-    MALLOC R15                                                   ; @ 0x03d5 -> [0xf0,0x2b]
-    MOV32 R14, 2048                                              ; @ 0x03d7 -> [0x71,0x2a,0x00,0x08,0x00,0x00]
-    ADD_R R15, R15, R14                                          ; @ 0x03dd -> [0x82,0x2b,0x2b,0x2a]
-    SUB8 R15, 8                                                  ; @ 0x03e1 -> [0x76,0x2b,0x08]
-    MOV R0, R15                                                  ; @ 0x03e4 -> [0x6e,0x04,0x2b]
-    ADD8 R0, 4                                                   ; @ 0x03e7 -> [0x73,0x04,0x04]
-    mov *R0_32b, R4                                              ; @ 0x03ea -> [0x6e,0x38,0x20]
-    MOV R1, R15                                                  ; @ 0x03ed -> [0x6e,0x05,0x2b]
-    mov *R1_32b, R5                                              ; @ 0x03f0 -> [0x6e,0x39,0x21]
-    ;APP
-    mov R0, V0                                                   ; @ 0x03f3 -> [0x6e,0x04,0x00]
-    ;NO_APP
-    MOV8 R1, 1                                                   ; @ 0x03f6 -> [0x6f,0x05,0x01]
-    JG R0, R1, .LBB15_4                                          ; @ 0x03f9 -> [0x46,0x04,0x05,0x01,0x04]
-    JMP .LBB15_1                                                 ; @ 0x03fe -> [0x02,0x2e,0x04]
-.LBB15_4:                               ; %entry                 ; @ 0x0401
-    MOV8 R1, 2                                                   ; @ 0x0401 -> [0x6f,0x05,0x02]
-    XOR_R R1, R0, R1                                             ; @ 0x0404 -> [0x86,0x05,0x04,0x05]
-    JZ R1, .LBB15_11                                             ; @ 0x0408 -> [0x50,0x05,0x46,0x04]
-; %bb.5:                                ; %entry
-    MOV8 R1, 3                                                   ; @ 0x040c -> [0x6f,0x05,0x03]
-    XOR_R R1, R0, R1                                             ; @ 0x040f -> [0x86,0x05,0x04,0x05]
-    JZ R1, .LBB15_12                                             ; @ 0x0413 -> [0x50,0x05,0x4f,0x04]
-; %bb.6:                                ; %entry
-    MOV8 R1, 4                                                   ; @ 0x0417 -> [0x6f,0x05,0x04]
-    XOR_R R0, R0, R1                                             ; @ 0x041a -> [0x86,0x04,0x04,0x05]
-    JZ R0, .LBB15_7                                              ; @ 0x041e -> [0x50,0x04,0x25,0x04]
-    JMP .LBB15_14                                                ; @ 0x0422 -> [0x02,0x90,0x04]
-.LBB15_7:                               ; %sw.bb4                ; @ 0x0425
-    MOV8 R0, 0                                                   ; @ 0x0425 -> [0x6f,0x04,0x00]
-    MOV8 R1, 1                                                   ; @ 0x0428 -> [0x6f,0x05,0x01]
-    JMP .LBB15_13                                                ; @ 0x042b -> [0x02,0x55,0x04]
-.LBB15_1:                               ; %entry                 ; @ 0x042e
-    JZ R0, .LBB15_8                                              ; @ 0x042e -> [0x50,0x04,0x5b,0x04]
-; %bb.2:                                ; %entry
-    XOR_R R0, R0, R1                                             ; @ 0x0432 -> [0x86,0x04,0x04,0x05]
-    JZ R0, .LBB15_3                                              ; @ 0x0436 -> [0x50,0x04,0x3d,0x04]
-    JMP .LBB15_14                                                ; @ 0x043a -> [0x02,0x90,0x04]
-.LBB15_3:                               ; %sw.bb1                ; @ 0x043d
-    MOV8SX R0, -1                                                ; @ 0x043d -> [0x8c,0x04,0xff]
-    MOV8 R1, 0                                                   ; @ 0x0440 -> [0x6f,0x05,0x00]
-    JMP .LBB15_13                                                ; @ 0x0443 -> [0x02,0x55,0x04]
-.LBB15_11:                              ; %sw.bb2                ; @ 0x0446
-    MOV8 R0, 1                                                   ; @ 0x0446 -> [0x6f,0x04,0x01]
-    MOV8 R1, 0                                                   ; @ 0x0449 -> [0x6f,0x05,0x00]
-    JMP .LBB15_13                                                ; @ 0x044c -> [0x02,0x55,0x04]
-.LBB15_12:                              ; %sw.bb3                ; @ 0x044f
-    MOV8 R0, 0                                                   ; @ 0x044f -> [0x6f,0x04,0x00]
-    MOV8SX R1, -1                                                ; @ 0x0452 -> [0x8c,0x05,0xff]
-.LBB15_13:                              ; %sw.epilog             ; @ 0x0455
-    CALL try_move                                                ; @ 0x0455 -> [0x54,0x1d,0x02]
-    JMP .LBB15_14                                                ; @ 0x0458 -> [0x02,0x90,0x04]
-.LBB15_8:                               ; %sw.bb                 ; @ 0x045b
-    MOV8 R3, 64                                                  ; @ 0x045b -> [0x6f,0x07,0x40]
-    MOV R2, R3                                                   ; @ 0x045e -> [0x6e,0x06,0x07]
-    ;APP
-    MALLOC R2                                                    ; @ 0x0461 -> [0xf0,0x06]
-    ;NO_APP
-    MOV8 R4, 0                                                   ; @ 0x0463 -> [0x6f,0x20,0x00]
-.LBB15_9:                               ; %for.body.i            ; @ 0x0466
-                                        ; =>This Inner Loop Header: Depth=1
-    ADD_R R1, R2, R4                                             ; @ 0x0466 -> [0x82,0x05,0x06,0x20]
-    MOV32 R0, level                                              ; @ 0x046a -> [0x71,0x04,0xa3,0x04,0x00,0x00]
-    ADD R0, SCRIPT_ADDR                                          ; @ 0x0470 -> [0x72,0x04,0x17]
-    ADD_R R0, R4, R0                                             ; @ 0x0473 -> [0x82,0x04,0x20,0x04]
-    mov R5, *R0                                                  ; @ 0x0477 -> [0x6e,0x21,0x0b]
-    MOV R0, R1                                                   ; @ 0x047a -> [0x6e,0x04,0x05]
-    mov *R0, R5                                                  ; @ 0x047d -> [0x6e,0x0b,0x21]
-    INC R4                                                       ; @ 0x0480 -> [0x5f,0x20]
-    XOR_R R0, R4, R3                                             ; @ 0x0482 -> [0x86,0x04,0x20,0x07]
-    JNZ R0, .LBB15_9                                             ; @ 0x0486 -> [0x51,0x04,0x66,0x04]
-; %bb.10:                               ; %init.exit
-    ;APP
-    mov GL_0, R2                                                 ; @ 0x048a -> [0x6e,0x80,0x06]
-    ;NO_APP
-    ;APP
-    WAIT_IF_RELEASE                                              ; @ 0x048d -> [0xf9]
-    ;NO_APP
-    ;APP
-    WAIT_IF_PRESS                                                ; @ 0x048e -> [0xfa]
-    ;NO_APP
-    ;APP
-    WAIT_IF_RELEASE                                              ; @ 0x048f -> [0xf9]
-    ;NO_APP
-.LBB15_14:                              ; %sw.epilog             ; @ 0x0490
-    MOV8 R0, 0                                                   ; @ 0x0490 -> [0x6f,0x04,0x00]
-    mov R5, *R1_32b                                              ; @ 0x0493 -> [0x6e,0x21,0x39]
-    MOV R2, R15                                                  ; @ 0x0496 -> [0x6e,0x06,0x2b]
-    ADD8 R2, 4                                                   ; @ 0x0499 -> [0x73,0x06,0x04]
-    mov R4, *R2_32b                                              ; @ 0x049c -> [0x6e,0x20,0x3a]
-    ADD8 R15, 8                                                  ; @ 0x049f -> [0x73,0x2b,0x08]
-    RET                                                          ; @ 0x04a2 -> [0x55]
-.Lfunc_end15:                                                    ; @ 0x04a3
-    .size    main, .Lfunc_end15-main                             ; @ 0x04a3
+    MOV32 R15, 2048                                              ; @ 0x026d -> [0x71,0x2b,0x00,0x08,0x00,0x00]
+    MALLOC R15                                                   ; @ 0x0273 -> [0xf0,0x2b]
+    MOV32 R14, 2048                                              ; @ 0x0275 -> [0x71,0x2a,0x00,0x08,0x00,0x00]
+    ADD_R R15, R15, R14                                          ; @ 0x027b -> [0x82,0x2b,0x2b,0x2a]
+    MOV8 R0, 0                                                   ; @ 0x027f -> [0x6f,0x04,0x00]
+    CALL get_arg                                                 ; @ 0x0282 -> [0x54,0x00,0xaa]
+    JNZ R0, .LBB13_2                                             ; @ 0x0285 -> [0x51,0x04,0x02,0x8c]
+; %bb.1:                                ; %sw.bb
+    CALL init                                                    ; @ 0x0289 -> [0x54,0x01,0xca]
+.LBB13_2:                               ; %sw.epilog             ; @ 0x028c
+    CALL end_script                                              ; @ 0x028c -> [0x54,0x00,0xf4]
+    MOV8 R0, 0                                                   ; @ 0x028f -> [0x6f,0x04,0x00]
+    RET                                                          ; @ 0x0292 -> [0x55]
+.Lfunc_end13:                                                    ; @ 0x0293
+    .size    main, .Lfunc_end13-main                             ; @ 0x0293
                                         ; -- End function
     .type    level,@object                   ; @level
     .data
     .globl    level
-level:                                                           ; @ 0x04a3
-    .ascii    "    ,,,, ,7 ,,,, ,,   ,, \033\037,, ,, ,,!, ,, ,,   ,,    ,,,,,,,,,,,,"  ; @ 0x04a3 -> [0x20,0x20,0x20,0x20,0x2c,0x2c,0x2c,0x2c,0x20,0x2c,0x37,0x20,0x2c,0x2c,0x2c,0x2c,0x20,0x2c,0x2c,0x20,0x20,0x20,0x2c,0x2c,0x20,0x1b,0x1f,0x2c,0x2c,0x20,0x2c,0x2c,0x20,0x2c,0x2c,0x21,0x2c,0x20,0x2c,0x2c,0x20,0x2c,0x2c,0x20,0x20,0x20,0x2c,0x2c,0x20,0x20,0x20,0x20,0x2c,0x2c,0x2c,0x2c,0x2c,0x2c,0x2c,0x2c,0x2c,0x2c,0x2c,0x2c]
+level:                                                           ; @ 0x0293
+    .ascii    "    ,,,, ,7 ,,,, ,,   ,, \033\037,, ,, ,,!, ,, ,,   ,,    ,,,,,,,,,,,,"  ; @ 0x0293 -> [0x20,0x20,0x20,0x20,0x2c,0x2c,0x2c,0x2c,0x20,0x2c,0x37,0x20,0x2c,0x2c,0x2c,0x2c,0x20,0x2c,0x2c,0x20,0x20,0x20,0x2c,0x2c,0x20,0x1b,0x1f,0x2c,0x2c,0x20,0x2c,0x2c,0x20,0x2c,0x2c,0x21,0x2c,0x20,0x2c,0x2c,0x20,0x2c,0x2c,0x20,0x20,0x20,0x2c,0x2c,0x20,0x20,0x20,0x20,0x2c,0x2c,0x2c,0x2c,0x2c,0x2c,0x2c,0x2c,0x2c,0x2c,0x2c,0x2c]
     .size    level, 64
 
     .ident    "clang version 17.0.6 (ssh://git@code.misakanet.cn:10777/svr2kos2/llvm_sayo_backend.git 599914bb46922f92f8520e0e28db156fd60bbae1)"

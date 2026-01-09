@@ -179,8 +179,8 @@ impl<'input> Lexer<'input> {
                     "text" | "data" | "bss" | "section" | "globl" | "global" | "local" |
                     "type" | "size" | "byte" | "word" | "short" | "long" | "quad" | 
                     "ascii" | "asciz" | "zero" | "align" | "p2align" | 
-                    "org" | "skip" | "file" | "ident" | "loc" | "addrsig" | "string" |
-                    "rodata") {
+                    "org" | "skip" | "file" | "ident" | "loc" | "addrsig" | "addrsig_sym" | 
+                    "string" | "rodata") {
                     Token::Directive(first_segment.to_string())
                 } else {
                     // It's a local label like .LBB14_25 or .L.str.1

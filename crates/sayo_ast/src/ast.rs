@@ -61,6 +61,10 @@ pub enum Directive {
     // Location directives
     Org(i64),         // .org <address>
     Skip(i64),        // .skip <count>
+    
+    // Address signature directives
+    Addrsig,              // .addrsig
+    AddrsigSym(String),   // .addrsig_sym <symbol>
 }
 
 /// Instruction with operands

@@ -1,0 +1,15 @@
+[package]
+name = "sayo_uploader"
+version.workspace = true
+edition.workspace = true
+authors.workspace = true
+license.workspace = true
+
+[[bin]]
+name = "sayo_uploader"
+path = "src/main.rs"
+
+[dependencies]
+sayo_api_rs = { git = "https://github.com/svr2kos2/sayo_api_rs.git" }
+tokio = { version = "1.0", features = ["full"] }
+anyhow = "1.0"

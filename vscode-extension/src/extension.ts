@@ -14,6 +14,9 @@ function findServerPath(context: vscode.ExtensionContext): string | undefined {
     const config = vscode.workspace.getConfiguration('sayo-asm');
     let serverPath = config.get<string>('languageServer.path');
     
+    // Log extension path for debugging
+    console.log(`Extension path: ${context.extensionPath}`);
+    
     // Priority 1: User-configured path (for development)
     if (serverPath && fs.existsSync(serverPath)) {
         console.log(`Using configured LSP server: ${serverPath}`);
@@ -21,11 +24,15 @@ function findServerPath(context: vscode.ExtensionContext): string | undefined {
     }
     
     // Priority 2: Bundled executable in extension
-    const bundledPath = path.join(context.extensionPath, 'bin', 'sayo-lsp.exe');
+    // Support both Windows (.exe) and Unix (no extension)
+    const exeName = process.platform === 'win32' ? 'sayo-lsp.exe' : 'sayo-lsp';
+    const bundledPath = path.join(context.extensionPath, 'bin', exeName);
+    console.log(`Looking for bundled LSP server at: ${bundledPath}`);
     if (fs.existsSync(bundledPath)) {
         console.log(`Using bundled LSP server: ${bundledPath}`);
         return bundledPath;
     }
+    console.log(`Bundled LSP server not found at: ${bundledPath}`);
     
     // Priority 3: Development build in workspace
     const workspaceFolders = vscode.workspace.workspaceFolders;
@@ -49,6 +56,8 @@ function findServerPath(context: vscode.ExtensionContext): string | undefined {
 
 export function activate(context: vscode.ExtensionContext) {
     console.log('Sayo Assembly extension activated');
+    console.log(`Extension URI: ${context.extensionUri.toString()}`);
+    console.log(`Extension Path: ${context.extensionPath}`);
 
     const serverPath = findServerPath(context);
     

@@ -10,21 +10,35 @@
   "engines": {
     "vscode": "^1.80.0"
   },
-  "categories": ["Programming Languages"],
-  "activationEvents": ["onLanguage:sayo-asm"],
+  "categories": [
+    "Programming Languages"
+  ],
+  "activationEvents": [
+    "onLanguage:sayo-asm"
+  ],
   "main": "./out/extension.js",
   "contributes": {
-    "languages": [{
-      "id": "sayo-asm",
-      "aliases": ["Sayo Assembly", "sayo"],
-      "extensions": [".s", ".asm"],
-      "configuration": "./language-configuration.json"
-    }],
-    "grammars": [{
-      "language": "sayo-asm",
-      "scopeName": "source.sayo-asm",
-      "path": "./syntaxes/sayo-asm.tmLanguage.json"
-    }],
+    "languages": [
+      {
+        "id": "sayo-asm",
+        "aliases": [
+          "Sayo Assembly",
+          "sayo"
+        ],
+        "extensions": [
+          ".s",
+          ".asm"
+        ],
+        "configuration": "./language-configuration.json"
+      }
+    ],
+    "grammars": [
+      {
+        "language": "sayo-asm",
+        "scopeName": "source.sayo-asm",
+        "path": "./syntaxes/sayo-asm.tmLanguage.json"
+      }
+    ],
     "configuration": {
       "type": "object",
       "title": "Sayo Assembly",
@@ -36,7 +50,11 @@
         },
         "sayo-asm.trace.server": {
           "type": "string",
-          "enum": ["off", "messages", "verbose"],
+          "enum": [
+            "off",
+            "messages",
+            "verbose"
+          ],
           "default": "off",
           "description": "Traces the communication between VS Code and the language server"
         }
@@ -44,15 +62,17 @@
     }
   },
   "scripts": {
-    "vscode:prepublish": "npm run compile && npm run copy-server",
-    "compile": "tsc -p ./",
-    "watch": "tsc -watch -p ./",
+    "vscode:prepublish": "npm run esbuild-base -- --minify && npm run copy-server",
+    "esbuild-base": "esbuild ./src/extension.ts --bundle --outfile=out/extension.js --external:vscode --format=cjs --platform=node",
+    "compile": "npm run esbuild-base -- --sourcemap",
+    "watch": "npm run esbuild-base -- --sourcemap --watch",
     "copy-server": "node scripts/copy-server.js",
     "package": "vsce package"
   },
   "devDependencies": {
     "@types/node": "^20.0.0",
     "@types/vscode": "^1.80.0",
+    "esbuild": "^0.27.2",
     "typescript": "^5.0.0"
   },
   "dependencies": {

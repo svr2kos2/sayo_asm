@@ -66,7 +66,7 @@ pub fn generate_header(main_addr: u16, text_size: u16) -> Vec<u8> {
     
     // JMP main instruction
     header.push(JMP_OPCODE);
-    header.extend_from_slice(&main_addr.to_le_bytes());
+    header.extend_from_slice(&main_addr.to_be_bytes());
     
     // Magic "SAYO"
     header.extend_from_slice(&MAGIC);
