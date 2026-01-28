@@ -105,58 +105,68 @@ impl Listing {
     /// Generate header information for the listing file
     fn generate_header(output: &mut String, machine_code: &[u8], layout: &Layout) -> Result<(), Box<dyn Error>> {
         // Header structure:
-        // 0x0000: JMP main (3 bytes)
-        // 0x0003: Magic "SAYO" (4 bytes)
-        // 0x0007: Version (1 byte)
-        // 0x0008: Text size (2 bytes, little-endian)
-        // 0x000A: Reserved (1 byte)
-        // 0x000B: Assembly begins
+        // 0x0000: CALL main (3 bytes)
+        // 0x0003: EXIT (1 byte)
+        // 0x0004: Magic "SAYO" (4 bytes)
+        // 0x0008: Version (1 byte)
+        // 0x0009: Text size (2 bytes, little-endian)
+        // 0x000B: Reserved (1 byte)
+        // 0x000C: Assembly begins
         
-        const HEADER_SIZE: usize = 11;
+        const HEADER_SIZE: usize = 12;
         
         if machine_code.len() < HEADER_SIZE {
             return Err("Machine code too short for header".into());
         }
         
-        // JMP instruction (0x0000-0x0002)
-        let jmp_bytes = &machine_code[0..3];
+        // CALL instruction (0x0000-0x0002)
+        let call_bytes = &machine_code[0..3];
         output.push_str(&format!(
-            "    ; JMP main                                                   ; @ 0x0000 -> [{}]\n",
-            Self::format_bytes(jmp_bytes)
+            "    ; CALL main                                                  ; @ 0x0000 -> [{}]\n",
+            Self::format_bytes(call_bytes)
+        ));
+        
+        // EXIT instruction (0x0003)
+        let exit_byte = machine_code[3];
+        output.push_str(&format!(
+            "    ; EXIT                                                       ; @ 0x0003 -> [0x{:02x}]\n",
+            exit_byte
         ));
         
         // Header marker
-        output.push_str("; header:                                                        ; @ 0x0003\n");
+        output.push_str("; header:                                                        ; @ 0x0004\n");
         
-        // Magic "SAYO" (0x0003-0x0006)
-        let magic_bytes = &machine_code[3..7];
+        // Magic "SAYO" (0x0004-0x0007)
+        let magic_bytes = &machine_code[4..8];
         output.push_str(&format!(
-            "    ; \"SAYO\"                                                     ; @ 0x0003 -> [{}]\n",
+            "    ; \"SAYO\"                                                     ; @ 0x0004 -> [{}]\n",
             Self::format_bytes(magic_bytes)
         ));
         
-        // Version (0x0007)
-        let version = machine_code[7];
+        // Version (0x0008)
+        let version = machine_code[8];
         output.push_str(&format!(
-            "    ; version {}                                                  ; @ 0x0007 -> [0x{:02x}]\n",
+            "    ; version {}                                                  ; @ 0x0008 -> [0x{:02x}]\n",
             version, version
         ));
         
-        // Text size (0x0008-0x0009)
-        let text_size = u16::from_le_bytes([machine_code[8], machine_code[9]]);
+        // Text size (0x0009-0x000A)
+        let text_size = u16::from_le_bytes([machine_code[9], machine_code[10]]);
+        let text_size_padding = " ".repeat(8 - text_size.to_string().len());
+        
         output.push_str(&format!(
-            "    ; text_size {}                                             ; @ 0x0008 -> [0x{:02x}, 0x{:02x}]\n",
-            text_size, machine_code[8], machine_code[9]
+            "    ; text_size {}      {text_size_padding}                                   ; @ 0x0009 -> [0x{:02x}, 0x{:02x}]\n",
+            text_size, machine_code[9], machine_code[10]
         ));
         
-        // Reserved byte (0x000A)
+        // Reserved byte (0x000B)
         output.push_str(&format!(
-            "    ; reserved byte                                              ; @ 0x000a -> [0x{:02x}]\n",
-            machine_code[10]
+            "    ; reserved byte                                              ; @ 0x000b -> [0x{:02x}]\n",
+            machine_code[11]
         ));
         
         // Assembly begin marker
-        output.push_str(";assembly begin                                                  ; @ 0x000b\n");
+        output.push_str(";assembly begin                                                  ; @ 0x000c\n");
         
         Ok(())
     }

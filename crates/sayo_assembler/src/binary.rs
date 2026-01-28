@@ -4,13 +4,14 @@
 //! ```text
 //! Offset  Size  Description
 //! ------  ----  -----------
-//! 0x0000  3     JMP main instruction
-//! 0x0003  4     Magic "SAYO"
-//! 0x0007  1     Version byte
-//! 0x0008  2     Text section size (u16 LE)
-//! 0x000A  1     Reserved (0x00)
-//! 0x000B  N     Text section (code)
-//! 0x000B+N M    Data section (linear layout, no length prefixes)
+//! 0x0000  3     CALL main instruction
+//! 0x0003  1     EXIT instruction
+//! 0x0004  4     Magic "SAYO"
+//! 0x0008  1     Version byte
+//! 0x0009  2     Text section size (u16 LE)
+//! 0x000B  1     Reserved (0x00)
+//! 0x000C  N     Text section (code)
+//! 0x000C+N M    Data section (linear layout, no length prefixes)
 //! ```
 //!
 //! The data section is laid out linearly - data labels point directly to the
@@ -23,32 +24,39 @@ pub const MAGIC: [u8; 4] = [0x53, 0x41, 0x59, 0x4F];
 /// Current format version
 pub const VERSION: u8 = 0x01;
 
-/// JMP opcode
-pub const JMP_OPCODE: u8 = 0x02;
+/// CALL opcode
+pub const CALL_OPCODE: u8 = 0x54;
 
-/// Header size in bytes (JMP instruction + header fields)
-/// - JMP main: 3 bytes (opcode + u16 addr)
+/// EXIT opcode
+pub const EXIT_OPCODE: u8 = 0xFF;
+
+/// Header size in bytes (bootstrap instructions + header fields)
+/// - CALL main: 3 bytes (opcode + u16 addr)
+/// - EXIT: 1 byte (opcode)
 /// - Magic: 4 bytes
 /// - Version: 1 byte
 /// - Text size: 2 bytes
 /// - Reserved: 1 byte
-/// Total: 11 bytes
-pub const HEADER_SIZE: u32 = 11;
+/// Total: 12 bytes
+pub const HEADER_SIZE: u32 = 12;
 
-/// Offset of the JMP instruction (always 0)
-pub const JMP_OFFSET: u32 = 0;
+/// Offset of the CALL instruction (always 0)
+pub const CALL_OFFSET: u32 = 0;
+
+/// Offset of the EXIT instruction
+pub const EXIT_OFFSET: u32 = 3;
 
 /// Offset of the magic bytes
-pub const MAGIC_OFFSET: u32 = 3;
+pub const MAGIC_OFFSET: u32 = 4;
 
 /// Offset of the version byte
-pub const VERSION_OFFSET: u32 = 7;
+pub const VERSION_OFFSET: u32 = 8;
 
 /// Offset of the text size field
-pub const TEXT_SIZE_OFFSET: u32 = 8;
+pub const TEXT_SIZE_OFFSET: u32 = 9;
 
 /// Offset of the reserved byte
-pub const RESERVED_OFFSET: u32 = 10;
+pub const RESERVED_OFFSET: u32 = 11;
 
 /// Error types for binary generation
 #[derive(Debug, thiserror::Error)]
@@ -64,9 +72,12 @@ pub enum BinaryError {
 pub fn generate_header(main_addr: u16, text_size: u16) -> Vec<u8> {
     let mut header = Vec::with_capacity(HEADER_SIZE as usize);
     
-    // JMP main instruction
-    header.push(JMP_OPCODE);
+    // CALL main instruction
+    header.push(CALL_OPCODE);
     header.extend_from_slice(&main_addr.to_be_bytes());
+    
+    // EXIT instruction
+    header.push(EXIT_OPCODE);
     
     // Magic "SAYO"
     header.extend_from_slice(&MAGIC);
@@ -97,22 +108,25 @@ mod tests {
     fn test_header_content() {
         let header = generate_header(0x0020, 0x0100);
         
-        // JMP instruction
-        assert_eq!(header[0], JMP_OPCODE);
-        assert_eq!(header[1], 0x20); // Low byte of address
-        assert_eq!(header[2], 0x00); // High byte of address
+        // CALL instruction
+        assert_eq!(header[0], CALL_OPCODE);
+        assert_eq!(header[1], 0x00); // High byte of address (big-endian)
+        assert_eq!(header[2], 0x20); // Low byte of address
+        
+        // EXIT instruction
+        assert_eq!(header[3], EXIT_OPCODE);
         
         // Magic
-        assert_eq!(&header[3..7], b"SAYO");
+        assert_eq!(&header[4..8], b"SAYO");
         
         // Version
-        assert_eq!(header[7], VERSION);
+        assert_eq!(header[8], VERSION);
         
         // Text size
-        assert_eq!(header[8], 0x00); // Low byte
-        assert_eq!(header[9], 0x01); // High byte
+        assert_eq!(header[9], 0x00); // Low byte
+        assert_eq!(header[10], 0x01); // High byte
         
         // Reserved
-        assert_eq!(header[10], 0x00);
+        assert_eq!(header[11], 0x00);
     }
 }
