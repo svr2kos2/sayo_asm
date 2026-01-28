@@ -191,38 +191,38 @@ impl Register {
     /// Get the human-readable description for this register
     pub fn description(&self) -> &'static str {
         match self {
-            Self::V0 | Self::V1 | Self::V2 | Self::V3 => "按键传入的参数/通用寄存器",
+            Self::V0 | Self::V1 | Self::V2 | Self::V3 => "Key parameters/General purpose register",
             Self::R0 | Self::R1 | Self::R2 | Self::R3 | Self::R4 | Self::R5 | Self::R6 | Self::R7 |
-            Self::R8 | Self::R9 | Self::R10 | Self::R11 | Self::R12 | Self::R13 | Self::R14 | Self::R15 => "通用寄存器",
-            Self::DPTR => "映射到 R4",
-            Self::StarDPTR => "ROM寻址专用寄存器，映射到 R4，共享地址空间",
+            Self::R8 | Self::R9 | Self::R10 | Self::R11 | Self::R12 | Self::R13 | Self::R14 | Self::R15 => "General purpose register",
+            Self::DPTR => "Mapped to R4",
+            Self::StarDPTR => "ROM addressing dedicated register, mapped to R4, shared address space",
             Self::KeyIO => "0=pressed",
-            Self::StarR0 | Self::StarR1 | Self::StarR2 | Self::StarR3 => "使用寄存器寻址RAM（8位）",
-            Self::StarR4 | Self::StarR5 | Self::StarR6 | Self::StarR7 => "使用寄存器寻址RAM（8位）",
+            Self::StarR0 | Self::StarR1 | Self::StarR2 | Self::StarR3 => "RAM addressing using register (8-bit)",
+            Self::StarR4 | Self::StarR5 | Self::StarR6 | Self::StarR7 => "RAM addressing using register (8-bit)",
             Self::StarR0_16b | Self::StarR1_16b | Self::StarR2_16b | Self::StarR3_16b |
-            Self::StarR4_16b | Self::StarR5_16b | Self::StarR6_16b | Self::StarR7_16b => "使用寄存器寻址RAM（16位）",
+            Self::StarR4_16b | Self::StarR5_16b | Self::StarR6_16b | Self::StarR7_16b => "RAM addressing using register (16-bit)",
             Self::StarR0_32b | Self::StarR1_32b | Self::StarR2_32b | Self::StarR3_32b |
-            Self::StarR4_32b | Self::StarR5_32b | Self::StarR6_32b | Self::StarR7_32b => "使用寄存器寻址RAM（32位）",
-            Self::Zero => "读取恒为0",
-            Self::A => "专用寄存器。映射到R6，共享地址空间。某些指令可以用此寄存器可以减少代码长度",
-            Self::B => "专用寄存器。映射到R7，共享地址空间。某些指令可以用此寄存器可以减少代码长度",
-            Self::SysTimeMs => "系统时间，毫秒。取值范围0~999",
-            Self::SysTimeS => "系统时间，秒。",
-            Self::SysKbled => "键盘 LED 状态（Num Lock、Caps Lock、Scroll Lock等）",
-            Self::SysKeyCount => "系统物理按键次数计数",
-            Self::SysKeyLay => "键盘层级。一个键盘可能有多层按键设置",
-            Self::ScriptAddr => "脚本起始地址",
-            Self::Random => "R:获取随机数 W:设置随机数种子",
-            Self::SysBleNum => "蓝牙多机切换",
-            Self::SysVolume => "绝对系统音量；因windows系统无效目前无作用",
-            Self::SelectedLed => "选中操作的LED灯。默认选中执行按键本身的LED",
-            Self::SelectedLedCol => "修改选中灯的灯光颜色（RGB888）",
-            Self::AllLedCol => "修改全部灯的灯光颜色（RGB888）",
-            Self::CfgAddr => "获取当前配置文件地址",
-            Self::HeKeyLv => "磁轴的按键深度数值，单位um",
-            Self::SysUsbSusp => "R：1=USB处于休眠状态 W：唤醒主机",
-            Self::GlSize => "有多少个GL寄存器(至少有4个，最多有64个)",
-            Self::Gl(_) => "通用全局寄存器",
+            Self::StarR4_32b | Self::StarR5_32b | Self::StarR6_32b | Self::StarR7_32b => "RAM addressing using register (32-bit)",
+            Self::Zero => "Always reads as 0",
+            Self::A => "Dedicated register. Mapped to R6, shared address space. Can reduce code length for certain instructions",
+            Self::B => "Dedicated register. Mapped to R7, shared address space. Can reduce code length for certain instructions",
+            Self::SysTimeMs => "System time in milliseconds. Range 0-999",
+            Self::SysTimeS => "System time in seconds",
+            Self::SysKbled => "Keyboard LED status (Num Lock, Caps Lock, Scroll Lock, etc.)",
+            Self::SysKeyCount => "Physical key press count",
+            Self::SysKeyLay => "Keyboard layer. A keyboard may have multiple key layers",
+            Self::ScriptAddr => "Script starting address",
+            Self::Random => "R: Get random number W: Set random seed",
+            Self::SysBleNum => "Bluetooth multi-device switching",
+            Self::SysVolume => "Absolute system volume; currently ineffective on Windows",
+            Self::SelectedLed => "Selected LED for operation. Default is the LED of the pressed key",
+            Self::SelectedLedCol => "Modify the color of selected LED (RGB888)",
+            Self::AllLedCol => "Modify the color of all LEDs (RGB888)",
+            Self::CfgAddr => "Get current configuration file address",
+            Self::HeKeyLv => "Magnetic axis key depth value in micrometers",
+            Self::SysUsbSusp => "R: 1=USB in sleep state W: Wake up host",
+            Self::GlSize => "Number of GL registers (minimum 4, maximum 64)",
+            Self::Gl(_) => "General-purpose global register",
         }
     }
     
@@ -480,3 +480,4 @@ impl RegisterMetadata {
         self.access.is_writable()
     }
 }
+

@@ -9,10 +9,10 @@ use std::io::{self, Write};
 
 #[tokio::main]
 async fn main() -> Result<()> {
-    // 获取命令行参数
+    // Get command-line arguments
     let args: Vec<String> = env::args().collect();
     
-    // 解析参数
+    // Parse arguments
     let mut bin_path: Option<String> = None;
     let mut vpm_filter: Option<u64> = None;
     let mut script_index_arg: Option<usize> = None;
@@ -22,24 +22,24 @@ async fn main() -> Result<()> {
         match args[i].as_str() {
             "--vpm" => {
                 if i + 1 >= args.len() {
-                    eprintln!("错误: --vpm 需要一个参数");
+                    eprintln!("Error: --vpm requires an argument");
                     std::process::exit(1);
                 }
                 let vpm_str = &args[i + 1].replace("_", "");
                 vpm_filter = Some(
                     u64::from_str_radix(vpm_str.trim_start_matches("0x"), 16)
-                        .context("无效的VPM值，应为十六进制数")?
+                        .context("Invalid VPM value, should be hexadecimal")?
                 );
                 i += 2;
             }
             "--index" => {
                 if i + 1 >= args.len() {
-                    eprintln!("错误: --index 需要一个参数");
+                    eprintln!("Error: --index requires an argument");
                     std::process::exit(1);
                 }
                 script_index_arg = Some(
                     args[i + 1].parse()
-                        .context("无效的index值，应为数字")?
+                        .context("Invalid index value, should be a number")?
                 );
                 i += 2;
             }
@@ -47,7 +47,7 @@ async fn main() -> Result<()> {
                 if bin_path.is_none() {
                     bin_path = Some(args[i].clone());
                 } else {
-                    eprintln!("错误: 未知参数或多余的参数: {}", args[i]);
+                    eprintln!("Error: Unknown or extra parameter: {}", args[i]);
                     std::process::exit(1);
                 }
                 i += 1;
@@ -58,37 +58,37 @@ async fn main() -> Result<()> {
     let bin_path = match bin_path {
         Some(path) => path,
         None => {
-            eprintln!("用法: {} <bin文件路径> [--vpm <VPM值>] [--index <脚本索引>]", args[0]);
-            eprintln!("示例: {} program.bin --vpm 0x8089000900014 --index 0", args[0]);
+            eprintln!("Usage: {} <bin file path> [--vpm <VPM value>] [--index <script index>]", args[0]);
+            eprintln!("Example: {} program.bin --vpm 0x8089000900014 --index 0", args[0]);
             std::process::exit(1);
         }
     };
     
-    // 读取 .bin 文件
+    // Read .bin file
     let bin_data = fs::read(&bin_path)
-        .context(format!("无法读取文件: {}", bin_path))?;
+        .context(format!("Unable to read file: {}", bin_path))?;
     
-    println!("已读取文件: {} ({} 字节)", bin_path, bin_data.len());
+    println!("Read file: {} ({} bytes)", bin_path, bin_data.len());
 
-    // VPM示例: VPM = VID (2字节) | PID (2字节) | ModelCode (2字节)
-    // 例如: 0x8089_0009_0014
+    // VPM example: VPM = VID (2 bytes) | PID (2 bytes) | ModelCode (2 bytes)
+    // For example: 0x8089_0009_0014
     // VID = 0x8089, PID = 0x0009, ModelCode = 0x0014
     
-    // 初始化设备API
-    println!("\n正在初始化设备API...");
+    // Initialize device API
+    println!("\nInitializing device API...");
     init_sayo_device().await;
     
-    // 获取设备列表
-    println!("正在获取设备列表...");
+    // Get device list
+    println!("Getting device list...");
     let devices = get_device_list().await;
     
     if devices.is_empty() {
-        bail!("未找到任何设备");
+        bail!("No devices found");
     }
 
-    // 如果提供了VPM参数，进行设备筛选
+    // If VPM parameter is provided, filter devices
     let selected_device = if let Some(vpm) = vpm_filter {
-        println!("\n使用VPM筛选设备: 0x{:012X}", vpm);
+        println!("\nFiltering devices by VPM: 0x{:012X}", vpm);
         
         let vid: u16 = (vpm >> 32) as u16;
         let pid: u16 = ((vpm & 0xFFFFFFFF) >> 16) as u16;
@@ -96,7 +96,7 @@ async fn main() -> Result<()> {
         
         println!("VID: 0x{:04X}, PID: 0x{:04X}, ModelCode: 0x{:04X}", vid, pid, model_code);
         
-        // 查找匹配的设备
+        // Find matching device
         let mut matched_device = None;
         for device in &devices {
             let dev_vid = device.vid();
@@ -106,7 +106,7 @@ async fn main() -> Result<()> {
                 None => None,
             };
             println!(
-                "检查设备: {:?}, VID: 0x{:04X}, PID: 0x{:04X}, ModelCode: {:?}",
+                "Checking device: {:?}, VID: 0x{:04X}, PID: 0x{:04X}, ModelCode: {:?}",
                 device,
                 dev_vid,
                 dev_pid,
@@ -117,7 +117,7 @@ async fn main() -> Result<()> {
                 if let Some(dev_mc) = dev_model_code {
                     if dev_mc == model_code {
                         matched_device = Some(device);
-                        println!("✓ 找到匹配的设备: {:?}", device);
+                        println!("✓ Found matching device: {:?}", device);
                         break;
                     }
                 }
@@ -127,102 +127,102 @@ async fn main() -> Result<()> {
         match matched_device {
             Some(device) => device,
             None => {
-                bail!("未找到匹配VPM 0x{:012X} 的设备", vpm);
+                bail!("No device matching VPM 0x{:012X} found", vpm);
             }
         }
     } else {
-        // 显示设备列表，让用户选择
-        println!("\n找到 {} 个设备:", devices.len());
+        // Display device list and let user select
+        println!("\nFound {} device(s):", devices.len());
         for (i, device) in devices.iter().enumerate() {
-            println!("[{}] 设备: {:?}", i, device);
+            println!("[{}] Device: {:?}", i, device);
         }
 
-        // 用户选择设备
-        print!("\n请选择设备 (0-{}): ", devices.len() - 1);
+        // User selects device
+        print!("\nPlease select device (0-{}): ", devices.len() - 1);
         io::stdout().flush()?;
         
         let mut device_input = String::new();
         io::stdin().read_line(&mut device_input)?;
         let device_index: usize = device_input.trim().parse()
-            .context("无效的设备索引")?;
+            .context("Invalid device index")?;
         
         if device_index >= devices.len() {
-            bail!("设备索引超出范围");
+            bail!("Device index out of range");
         }
 
         &devices[device_index]
     };
 
-    println!("\n已选择设备: {:?}", selected_device);
+    println!("\nSelected device: {:?}", selected_device);
 
-    // 获取脚本名称列表（用于确定设备支持的脚本数量）
+    // Get script name list (to determine the number of scripts supported by the device)
     let script_names = selected_device.get_script_names().await;
     
     let max_scripts = script_names.len();
-    println!("\n设备支持的脚本数量: {}", max_scripts);
+    println!("\nNumber of scripts supported by device: {}", max_scripts);
 
-    // 获取脚本长度限制
+    // Get script length limit
     let script_max_len = selected_device.get_script_address_len(0).await;
     
-    println!("脚本最大长度: {} 字节", script_max_len);
+    println!("Script maximum length: {} bytes", script_max_len);
 
-    // 检查文件大小是否超出限制
+    // Check if file size exceeds the limit
     if bin_data.len() > script_max_len as usize {
         bail!(
-            "文件过大！文件大小: {} 字节，设备限制: {} 字节",
+            "File too large! File size: {} bytes, device limit: {} bytes",
             bin_data.len(),
             script_max_len
         );
     }
 
-    // 显示脚本槽信息
-    println!("\n可用的脚本槽: 0 到 {}", max_scripts - 1);
+    // Display script slot information
+    println!("\nAvailable script slots: 0 to {}", max_scripts - 1);
     
-    // 确定脚本索引
+    // Determine script index
     let script_index = if let Some(index) = script_index_arg {
-        println!("使用指定的脚本索引: {}", index);
+        println!("Using specified script index: {}", index);
         
         if index >= max_scripts {
-            bail!("脚本索引 {} 超出范围，设备最大支持索引为 {}", index, max_scripts - 1);
+            bail!("Script index {} out of range, device max supported index is {}", index, max_scripts - 1);
         }
         
         index
     } else {
-        // 用户选择脚本索引
-        print!("请选择要上传到的脚本索引 (0-{}): ", max_scripts - 1);
+        // User selects script index
+        print!("Please select the script index to upload to (0-{}): ", max_scripts - 1);
         io::stdout().flush()?;
         
         let mut script_input = String::new();
         io::stdin().read_line(&mut script_input)?;
         let index: usize = script_input.trim().parse()
-            .context("无效的脚本索引")?;
+            .context("Invalid script index")?;
         
         if index >= max_scripts {
-            bail!("脚本索引超出范围");
+            bail!("Script index out of range");
         }
         
         index
     };
 
-    // 上传脚本
-    println!("\n正在上传脚本到索引 {}...", script_index);
+    // Upload script
+    println!("\nUploading script to index {}...", script_index);
     
-    // 创建脚本内容对象，包含二进制数据
+    // Create script content object with binary data
     let script_content = SayoScriptContent {
         bytes: RwBytes::new(bin_data.clone()),
     };
     
     // set_script(index, content, address, on_progress)
-    // on_progress 是一个进度回调函数
+    // on_progress is a progress callback function
     let result = selected_device.set_script(
         script_index as u8, 
         &script_content, 
         0,
         |progress| {
             Box::pin(async move {
-                print!("\r上传进度: {:.1}%", progress * 100.0);
+                print!("\rUpload progress: {:.1}%", progress * 100.0);
                 io::stdout().flush().ok();
-                true // 返回 true 继续上传
+                true // Return true to continue uploading
             })
         }
     ).await;
@@ -231,9 +231,9 @@ async fn main() -> Result<()> {
     
     if result {
         selected_device.save_all().await;
-        println!("✓ 脚本上传成功！");
+        println!("✓ Script uploaded successfully!");
     } else {
-        bail!("脚本上传失败");
+        bail!("Script upload failed");
     }
 
     Ok(())
